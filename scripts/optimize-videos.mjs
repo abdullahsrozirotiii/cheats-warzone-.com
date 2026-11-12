@@ -7,9 +7,7 @@ const root = process.cwd();
 const videosDir = path.join(root, 'public', 'videos');
 const postersDir = path.join(root, 'public', 'images', 'posters');
 
-const targets = [
-  { file: 'blog-hero.mp4', poster: 'blog-hero-poster', maxHeight: 720 },
-];
+const targets = [{ file: 'hero.mp4', poster: 'hero-poster', maxHeight: 720 }];
 
 function findFfmpeg() {
   const candidates = ['ffmpeg', 'ffmpeg.exe'];
@@ -64,7 +62,7 @@ async function writePosterFromFrame(framePath, outBase) {
 
 async function fallbackPosters() {
   // No ffmpeg: use existing stills so videos never show a blank hole.
-  const fallbacks = [{ src: 'public/images/herobackground-1280.webp', poster: 'blog-hero-poster' }];
+  const fallbacks = [{ src: 'public/images/producthome-1280.webp', poster: 'hero-poster' }];
   fs.mkdirSync(postersDir, { recursive: true });
   for (const item of fallbacks) {
     const input = path.join(root, item.src);
@@ -132,25 +130,6 @@ async function main() {
       optimized,
     ]);
 
-    const webmOut = path.join(tmpDir, target.file.replace(/\.mp4$/i, '.webm'));
-    run(ffmpeg, [
-      '-y',
-      '-i',
-      input,
-      '-c:v',
-      'libvpx-vp9',
-      '-b:v',
-      '0',
-      '-crf',
-      '32',
-      '-row-mt',
-      '1',
-      '-vf',
-      `scale=-2:'min(${target.maxHeight},ih)'`,
-      '-an',
-      webmOut,
-    ]);
-
     const before = fs.statSync(input).size;
     const after = fs.statSync(optimized).size;
     if (after < before * 0.98) {
@@ -162,17 +141,7 @@ async function main() {
       console.log(`Kept original ${target.file} (re-encode not smaller).`);
     }
 
-    if (fs.existsSync(webmOut)) {
-      const webmDest = path.join(videosDir, target.file.replace(/\.mp4$/i, '.webm'));
-      const webmBytes = fs.statSync(webmOut).size;
-      const mp4Bytes = fs.statSync(input).size;
-      if (webmBytes < mp4Bytes * 0.9) {
-        fs.copyFileSync(webmOut, webmDest);
-        console.log(
-          `Wrote ${path.relative(root, webmDest)} (${(webmBytes / 1024 / 1024).toFixed(2)}MB)`,
-        );
-      }
-    }
+    fs.rmSync(path.join(videosDir, target.file.replace(/\.mp4$/i, '.webm')), { force: true });
   }
 
   fs.rmSync(tmpDir, { recursive: true, force: true });

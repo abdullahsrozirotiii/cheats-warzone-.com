@@ -28,7 +28,7 @@ const sourceTimestamp = (path?: string) => {
 ---
 
 <BaseLayout title={seo.title} description={seo.description} jsonLd={[
-  collectionPageSchema({ name: 'WarzoneCheats Community Forum', description: seo.description, url: '/warzone-forum/' }),
+  collectionPageSchema({ name: 'Warzone Cheats community forum', description: seo.description, url: '/warzone-forum/' }),
   breadcrumbSchema(breadcrumbs),
 ]}>
   <section class="forum-page py-8 md:py-12" data-forum-root data-forum-messages={JSON.stringify({ discussion: 'discussion', discussions: 'discussions', showing: 'Showing {from}–{to} of {total}', zero: '0 discussions', page: 'Page {page}', noResults: 'No discussions match “{query}”', allTopics: 'All topics' })}>
@@ -131,7 +131,7 @@ const sourceTimestamp = (path?: string) => {
                   <div class="forum-post-meta">
                     <span class={`forum-community-avatar tone-${post.categoryTone}`}><Icon name="users" size={15} /></span>
                     <a href="#communities" class="forum-community-name">d/{post.category.toLowerCase().replaceAll(' ', '')}</a>
-                    <span>Â·</span><span><Icon name="userRound" size={13} /> WarzoneCheats guide team</span><span>Guide-based Q&amp;A</span>
+                    <span>Â·</span><span><Icon name="userRound" size={13} /> Warzone Cheats guide team</span><span>Guide-based Q&amp;A</span>
                   </div>
                   <a class="forum-post-title" href={`/warzone-forum/${post.slug}/`}>{post.title}</a>
                   <p class="forum-post-excerpt">{post.excerpt}</p>
@@ -158,7 +158,7 @@ const sourceTimestamp = (path?: string) => {
           <section class="forum-side-card forum-about" id="community-guidelines">
             <div class="forum-side-card__banner"></div>
             <div class="forum-about__content">
-              <div class="forum-about__title"><span class="forum-community-avatar forum-community-avatar--brand"><SiteLogo width={34} height={34} loading="lazy" alt="Forums – cheatswarzone" /></span><h2>Forums: WarzoneCheats Community</h2></div>
+              <div class="forum-about__title"><span class="forum-community-avatar forum-community-avatar--brand"><SiteLogo width={34} height={34} loading="lazy" alt="Warzone Cheats forums" /></span><h2>Forums: Warzone Cheats community</h2></div>
               <p>A home for Warzone players to trade ideas, learn together, and celebrate the game.</p>
               <div class="forum-stats"><span><b>{forumPosts.length}</b> guide discussions</span><span><b>{forumCategories.length}</b> topics</span></div>
               <a class="forum-join" href="/warzone-blog/">Explore all guides</a>
@@ -178,7 +178,7 @@ const sourceTimestamp = (path?: string) => {
             <ol><li>Keep it friendly and constructive</li><li>Stay on topic and add context</li><li>Mark spoilers and sensitive content</li></ol>
             <a href="#community-guidelines">Read the full guidelines <Icon name="arrowRight" size={14} /></a>
           </section>
-          <p class="forum-sidebar-foot">About Â· Guidelines Â· Privacy Â· Terms<br />Â© {new Date().getFullYear()} WarzoneCheats Community</p>
+          <p class="forum-sidebar-foot">About Â· Guidelines Â· Privacy Â· Terms<br />Â© {new Date().getFullYear()} Warzone Cheats community</p>
         </aside>
       </div>
     </div>

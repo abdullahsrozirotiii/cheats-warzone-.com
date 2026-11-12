@@ -14,6 +14,10 @@ if (!fs.existsSync(inPath)) {
 
 for (const w of [240, 480]) {
   const out = path.join(outDir, `warzone-logo-${w}.webp`);
+  if (path.resolve(inPath) === path.resolve(out)) {
+    console.log(`Keep ${path.relative(process.cwd(), out)} (source master).`);
+    continue;
+  }
   await sharp(inPath)
     .resize({ width: w, withoutEnlargement: true })
     .webp({ quality: 88, effort: 6 })

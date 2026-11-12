@@ -31,7 +31,7 @@ function walk(dir) {
 
     // Keep hero + product preview originals — pages reference these paths directly.
     if (
-      /^(herobackground|bloghero|aimbotproduct|playerproduct|gadegtespproduct|misc|producthome|product-bots-esp|product-keybinds|product-config|product-skin-preview|product-colors)\.(png|jpe?g)$/i.test(
+      /^(aimbotproduct|playerproduct|gadegtespproduct|misc|producthome|product-bots-esp|product-keybinds|product-config|product-skin-preview|product-colors)\.(png|jpe?g)$/i.test(
         entry.name,
       )
     ) {

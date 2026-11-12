@@ -132,7 +132,7 @@ export function discussionForumPostingSchema(input: {
     url: canonicalUrl(input.url),
     author: { '@type': 'Person', name: input.author },
     commentCount: input.comments,
-    isPartOf: { '@type': 'CollectionPage', name: 'WarzoneCheats Community Forum', url: canonicalUrl('/warzone-forum/') },
+    isPartOf: { '@type': 'CollectionPage', name: 'Warzone Cheats community forum', url: canonicalUrl('/warzone-forum/') },
   };
 }
 

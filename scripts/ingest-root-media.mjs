@@ -3,8 +3,8 @@ import path from 'node:path';
 import sharp from 'sharp';
 
 const root = process.cwd();
-const imgDir = path.join(root, 'public', 'images');
-const assetsDir = path.join(root, 'src', 'assets', 'images');
+const imgDir = path.join(root, 'media-masters', 'images');
+const assetsDir = path.join(root, 'media-masters', 'images');
 
 const P = (name) => path.join(root, name);
 
