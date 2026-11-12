@@ -64,7 +64,7 @@ async function writePosterFromFrame(framePath, outBase) {
 
 async function fallbackPosters() {
   // No ffmpeg: use existing stills so videos never show a blank hole.
-  const fallbacks = [{ src: 'public/images/herobackground.png', poster: 'blog-hero-poster' }];
+  const fallbacks = [{ src: 'public/images/herobackground-1280.webp', poster: 'blog-hero-poster' }];
   fs.mkdirSync(postersDir, { recursive: true });
   for (const item of fallbacks) {
     const input = path.join(root, item.src);
