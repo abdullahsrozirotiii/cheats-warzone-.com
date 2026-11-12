@@ -5,7 +5,25 @@
  */
 import { resolvePathRedirect } from '../scripts/redirects.mjs';
 import { resolveCheckoutPathRedirect } from '../src/config/checkout-redirects.mjs';
-import { WARZONE_SITE_HOST } from '../scripts/site-url.mjs';
+import {
+  PREVIEW_X_ROBOTS_TAG,
+  WARZONE_SITE_HOST,
+  shouldSendPreviewNoindex,
+} from '../scripts/site-url.mjs';
+
+async function passThroughWithPreviewGuard(context, url) {
+  const response = await context.next();
+  if (!shouldSendPreviewNoindex(url.hostname)) {
+    return response;
+  }
+  const headers = new Headers(response.headers);
+  headers.set('X-Robots-Tag', PREVIEW_X_ROBOTS_TAG);
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
 
 export async function onRequest(context) {
   const url = new URL(context.request.url);
@@ -30,5 +48,5 @@ export async function onRequest(context) {
     return Response.redirect(dest.toString(), 301);
   }
 
-  return context.next();
+  return passThroughWithPreviewGuard(context, url);
 }

@@ -29,3 +29,36 @@ export function isPreviewDeploy() {
   const production = (process.env.CF_PAGES_PRODUCTION_BRANCH || 'main').trim();
   return branch !== production;
 }
+
+/** Applied to non-production host responses at the edge (Pages middleware). */
+export const PREVIEW_X_ROBOTS_TAG = 'noindex, nofollow';
+
+export function normalizeHostname(hostname) {
+  return String(hostname ?? '')
+    .trim()
+    .toLowerCase()
+    .replace(/\.$/, '');
+}
+
+/** Apex production host — fully indexable (no preview X-Robots-Tag). */
+export function isProductionIndexableHost(hostname) {
+  return normalizeHostname(hostname) === DEFAULT_SITE_DOMAIN;
+}
+
+/** Local dev hosts — no preview header (same as before middleware guard). */
+export function isLocalDevHost(hostname) {
+  const h = normalizeHostname(hostname);
+  return h === 'localhost' || h === '127.0.0.1' || h === '[::1]';
+}
+
+/**
+ * Whether to set X-Robots-Tag on pass-through asset responses.
+ * www is excluded here because it 301s to apex before pass-through.
+ */
+export function shouldSendPreviewNoindex(hostname) {
+  const h = normalizeHostname(hostname);
+  if (isProductionIndexableHost(h)) return false;
+  if (isLocalDevHost(h)) return false;
+  if (h === `www.${DEFAULT_SITE_DOMAIN}`) return false;
+  return true;
+}

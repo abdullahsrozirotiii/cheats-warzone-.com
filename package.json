@@ -14,7 +14,8 @@
     "optimize:images": "node scripts/optimize-images.mjs",
     "optimize:videos": "node scripts/optimize-videos.mjs",
     "optimize:media": "node scripts/optimize-images.mjs && node scripts/optimize-videos.mjs",
-    "cf:www-redirect": "node scripts/cloudflare-www-redirect.mjs"
+    "cf:www-redirect": "node scripts/cloudflare-www-redirect.mjs",
+    "test:preview-robots": "node scripts/preview-robots.test.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",
