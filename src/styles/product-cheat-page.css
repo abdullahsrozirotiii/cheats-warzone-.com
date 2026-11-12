@@ -30,13 +30,13 @@
 .products-carousel__head {
   position: relative;
   margin-bottom: 1.25rem;
-  padding-right: 3.75rem;
+  padding-right: 7.25rem;
 }
 
 @media (min-width: 768px) {
   .products-carousel__head {
     margin-bottom: 1.5rem;
-    padding-right: 4.25rem;
+    padding-right: 7.75rem;
   }
 }
 
@@ -99,8 +99,6 @@
   }
 }
 
-/* Starwind defaults park prev off-screen left; keep one control slot on the right */
-.products-carousel .products-carousel__arrow--prev,
 .products-carousel .products-carousel__arrow--next {
   inset-inline-end: 0 !important;
   inset-inline-start: auto !important;
@@ -108,17 +106,47 @@
   margin-inline-end: 0 !important;
 }
 
-/* Show next before Embla inits when a 4th card exists */
-.products-carousel[data-card-count='4'] .products-carousel__arrow--next:not([hidden]) {
+.products-carousel .products-carousel__arrow--prev {
+  inset-inline-end: 3.5rem !important;
+  inset-inline-start: auto !important;
+  margin-inline-start: 0 !important;
+  margin-inline-end: 0 !important;
+}
+
+@media (min-width: 768px) {
+  .products-carousel .products-carousel__arrow--prev {
+    inset-inline-end: 3.75rem !important;
+  }
+}
+
+/* Show both controls before Embla inits when a 4th card exists */
+.products-carousel[data-card-count='4'] .products-carousel__arrow--next,
+.products-carousel[data-card-count='4'] .products-carousel__arrow--prev {
   display: inline-flex;
   opacity: 1;
   pointer-events: auto;
+}
+
+.products-carousel[data-card-count='4'] .products-carousel__arrow--prev:disabled {
+  opacity: 0.45;
+  pointer-events: none;
 }
 
 .products-carousel__arrow.is-visible {
   display: inline-flex !important;
   opacity: 1 !important;
   pointer-events: auto !important;
+}
+
+.products-carousel__arrow.is-visible:disabled {
+  opacity: 0.45 !important;
+  pointer-events: none !important;
+  cursor: not-allowed;
+}
+
+.products-carousel__arrow.is-visible:disabled:hover {
+  border-color: color-mix(in oklch, var(--border) 85%, var(--foreground) 15%);
+  background: color-mix(in oklch, var(--background) 92%, var(--foreground) 8%);
 }
 
 .products-carousel__arrow[hidden] {

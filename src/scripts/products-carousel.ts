@@ -19,10 +19,11 @@ function getControl(
   );
 }
 
-function applyArrowState(button: HTMLButtonElement | null, show: boolean) {
+function applyArrowState(button: HTMLButtonElement | null, visible: boolean, enabled: boolean) {
   if (!button) return;
-  button.classList.toggle('is-visible', show);
-  if (show) {
+  button.classList.toggle('is-visible', visible);
+  button.disabled = !enabled;
+  if (visible) {
     button.removeAttribute('hidden');
     button.removeAttribute('aria-hidden');
   } else {
@@ -37,9 +38,10 @@ function syncProductsCarousel(wrap: HTMLElement, root: HTMLElement) {
   const next = getControl(wrap, root, 'next');
   const canPrev = carousel.canScrollPrev();
   const canNext = carousel.canScrollNext();
+  const hasOverflow = canPrev || canNext;
 
-  applyArrowState(prev, canPrev);
-  applyArrowState(next, canNext);
+  applyArrowState(prev, hasOverflow, canPrev);
+  applyArrowState(next, hasOverflow, canNext);
 }
 
 function bindProductsCarousel(wrap: HTMLElement) {
