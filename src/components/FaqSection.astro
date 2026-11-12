@@ -1,0 +1,188 @@
+---
+import type { SiteFaqItem, FaqTopic } from '../data/faq';
+import Breadcrumbs from './Breadcrumbs.astro';
+import SectionHeader from './SectionHeader.astro';
+import Icon from './icons/Icon.astro';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/starwind/accordion';
+import { Button } from '@/components/starwind/button';
+import { FAQ_LANDING_VISIBLE_COUNT } from '../data/faq';
+import { DEFAULT_LOCALE, getLocaleFromPathname, useTranslations } from '../i18n';
+
+interface BreadcrumbItem {
+  name: string;
+  path: string;
+}
+
+interface Props {
+  items: SiteFaqItem[];
+  breadcrumbs?: BreadcrumbItem[];
+  eyebrow?: string;
+  title?: string;
+  subtitle?: string;
+  titleId?: string;
+  showFilters?: boolean;
+  filterTopics?: FaqTopic[];
+  centered?: boolean;
+  /** FAQ column alignment (product pages use left) */
+  contentAlign?: 'left' | 'center';
+  /** Page-level FAQ uses h1; section embeds keep h2. */
+  headingLevel?: 'h1' | 'h2';
+  /** Show this many questions before “See more” (0 = show all). */
+  initialVisible?: number;
+  seeMoreLabel?: string;
+  id?: string;
+  class?: string;
+}
+
+const {
+  items,
+  breadcrumbs,
+  eyebrow = 'FAQ',
+  title = 'Straight answers before checkout.',
+  subtitle = 'Compatibility, bans and access—no vague promises.',
+  titleId = 'faq-heading',
+  showFilters = false,
+  filterTopics,
+  centered = false,
+  contentAlign = 'center',
+  headingLevel = 'h2',
+  initialVisible = FAQ_LANDING_VISIBLE_COUNT,
+  seeMoreLabel = 'See more',
+  id: sectionId,
+  class: className,
+} = Astro.props;
+
+const showMoreButton = initialVisible > 0 && items.length > initialVisible;
+const visibleItems = showMoreButton ? items.slice(0, initialVisible) : items;
+const overflowItems = showMoreButton ? items.slice(initialVisible) : [];
+
+const locale = Astro.locals.locale ?? getLocaleFromPathname(Astro.url.pathname) ?? DEFAULT_LOCALE;
+const t = useTranslations(locale);
+const topicLabels: Record<FaqTopic, string> = t.faq.topicLabels;
+
+const filters = filterTopics ?? (['all', 'scripts', 'safety', 'products'] as FaqTopic[]);
+---
+
+<section
+  id={sectionId}
+  class:list={['py-16 md:py-24', className]}
+  aria-labelledby={titleId}
+  data-faq-section
+  data-faq-initial={showMoreButton ? initialVisible : undefined}
+>
+  <div class="mx-auto max-w-6xl px-5">
+    {breadcrumbs?.length ? (
+      <div class="mb-6 md:mb-8">
+        <Breadcrumbs items={breadcrumbs} />
+      </div>
+    ) : null}
+    <div class:list={[contentAlign === 'center' && 'mx-auto max-w-3xl', contentAlign === 'left' && 'product-detail__narrow max-w-3xl']}>
+    <SectionHeader
+      eyebrow={eyebrow}
+      title={title}
+      desc={subtitle}
+      titleId={titleId}
+      centered={centered}
+      headingLevel={headingLevel}
+    />
+
+    {
+      headingLevel === 'h1' && (
+        <h2 class="mt-8 text-lg font-semibold text-foreground md:text-xl">Warzone cheats FAQ topics on this page</h2>
+      )
+    }
+
+    {
+      showFilters && (
+        <div
+          class:list={[
+            'mt-8 flex flex-wrap gap-2',
+            contentAlign === 'center' ? 'justify-center' : 'justify-start',
+          ]}
+          data-faq-filters
+        >
+          {filters.map((topic, i) => (
+            <button
+              type="button"
+              class:list={[
+                'faq-filter-chip rounded-full border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-none hover:border-primary hover:text-foreground',
+                { 'is-active': i === 0 },
+              ]}
+              data-faq-filter={topic}
+            >
+              {topicLabels[topic]}
+            </button>
+          ))}
+        </div>
+      )
+    }
+
+    <Accordion type="single" collapsible class="mt-8 w-full" data-faq-list>
+      {
+        visibleItems.map((faq, i) => (
+          <div data-faq-item data-faq-topic={faq.topic}>
+            <AccordionItem value={`faq-${i}`}>
+              <AccordionTrigger class="text-left">
+                <span class="flex items-center gap-2">
+                  <Icon name={faq.icon} size={16} class="shrink-0" />
+                  <span>{faq.q}</span>
+                </span>
+              </AccordionTrigger>
+              <AccordionContent>
+                <div class="prose prose-sm dark:prose-invert max-w-none text-muted-foreground" set:html={faq.aHtml ?? faq.a} />
+              </AccordionContent>
+            </AccordionItem>
+          </div>
+        ))
+      }
+    </Accordion>
+
+    {
+      showMoreButton && (
+        <div class="mt-4 flex justify-start lg:justify-center" data-faq-more-wrap>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            class="rounded-full border-primary/35 text-foreground hover:border-primary hover:bg-primary/10"
+            data-faq-show-more
+            aria-expanded="false"
+          >
+            {seeMoreLabel}
+            <Icon name="chevronDown" size={16} />
+          </Button>
+        </div>
+      )
+    }
+
+    {
+      showMoreButton && (
+        <Accordion type="single" collapsible class="mt-2 w-full" data-faq-overflow-list>
+          {
+            overflowItems.map((faq, i) => (
+              <div data-faq-item data-faq-topic={faq.topic} data-faq-overflow>
+                <AccordionItem value={`faq-more-${i}`}>
+                  <AccordionTrigger class="text-left">
+                    <span class="flex items-center gap-2">
+                      <Icon name={faq.icon} size={16} class="shrink-0" />
+                      <span>{faq.q}</span>
+                    </span>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div class="prose prose-sm dark:prose-invert max-w-none text-muted-foreground" set:html={faq.aHtml ?? faq.a} />
+                  </AccordionContent>
+                </AccordionItem>
+              </div>
+            ))
+          }
+        </Accordion>
+      )
+    }
+    </div>
+  </div>
+</section>

@@ -1,0 +1,48 @@
+---
+/**
+ * Unified navbar/footer brand: Warzone logo with hover text “Warzone Cheats”.
+ */
+interface Props {
+  class?: string;
+  /** Logo height in CSS pixels */
+  logoHeight?: number;
+  loading?: 'lazy' | 'eager';
+  style?: string;
+}
+
+const {
+  class: className,
+  logoHeight = 36,
+  loading = 'lazy',
+  style: inlineStyle,
+} = Astro.props;
+
+const brandName = 'Warzone Cheats';
+const logoWidth = Math.round(logoHeight * 3.35);
+const logoSrc = '/images/brand/warzone-logo-240.webp';
+const logoSrcSet = '/images/brand/warzone-logo-240.webp 1x, /images/brand/warzone-logo-480.webp 2x';
+---
+
+<a
+  href="/"
+  class:list={['brand-mark group', className]}
+  aria-label={brandName}
+  style={inlineStyle}
+  data-no-localize="true"
+>
+  <img
+    src={logoSrc}
+    srcset={logoSrcSet}
+    alt=""
+    width={logoWidth}
+    height={logoHeight}
+    loading={loading}
+    decoding="async"
+    fetchpriority={loading === 'eager' ? 'high' : undefined}
+    class="brand-mark__logo"
+  />
+  <span class="brand-mark__text" aria-hidden="true">
+    <span class="text-foreground">Warzone</span>
+    <span class="text-primary"> Cheats</span>
+  </span>
+</a>

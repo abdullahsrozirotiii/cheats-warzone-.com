@@ -1,0 +1,95 @@
+---
+import type { HTMLAttributes } from "astro/types";
+import { accordion } from "./variants";
+
+type Props = HTMLAttributes<"div"> & {
+  type?: "single" | "multiple";
+  defaultValue?: string | string[];
+  collapsible?: boolean;
+};
+
+const {
+  type = "single",
+  defaultValue,
+  collapsible = true,
+  class: className,
+  ...rest
+} = Astro.props;
+---
+
+<div
+  class={accordion({ class: className })}
+  data-type={type}
+  data-collapsible={collapsible ? "true" : "false"}
+  data-slot="accordion"
+  {...rest}
+>
+  <slot />
+</div>
+
+<script>
+  function initAccordions() {
+    if ((window as any).__swAccordionInit) return;
+    (window as any).__swAccordionInit = true;
+
+    document.addEventListener('click', (e) => {
+      const trigger = (e.target as Element)?.closest<HTMLButtonElement>('[data-slot="accordion-trigger"]');
+      if (!trigger) return;
+      const item = trigger.closest('[data-slot="accordion-item"]');
+      if (!item) return;
+      const content = item.querySelector<HTMLElement>('[data-slot="accordion-content"]');
+      if (!content) return;
+      const root = item.closest('[data-slot="accordion"]');
+      const isSingle = root?.getAttribute('data-type') !== 'multiple';
+      const isOpen = trigger.getAttribute('data-state') === 'open';
+
+      if (isOpen && root?.getAttribute('data-collapsible') === 'false') {
+        return;
+      }
+
+      if (isSingle && !isOpen && root) {
+        root.querySelectorAll<HTMLElement>('[data-slot="accordion-item"]').forEach((otherItem) => {
+          if (otherItem === item) return;
+          const otherTrigger = otherItem.querySelector<HTMLElement>('[data-slot="accordion-trigger"]');
+          const otherContent = otherItem.querySelector<HTMLElement>('[data-slot="accordion-content"]');
+          if (otherTrigger?.getAttribute('data-state') === 'open' && otherContent) {
+            otherContent.style.setProperty('--starwind-accordion-content-height', `${otherContent.scrollHeight}px`);
+            otherContent.classList.remove('animate-accordion-down');
+            otherContent.classList.add('animate-accordion-up');
+            otherContent.addEventListener('animationend', () => {
+              otherContent.classList.remove('animate-accordion-up');
+            }, { once: true });
+          }
+          otherItem.setAttribute('data-state', 'closed');
+          otherTrigger?.setAttribute('data-state', 'closed');
+          otherTrigger?.setAttribute('aria-expanded', 'false');
+          otherContent?.setAttribute('data-state', 'closed');
+        });
+      }
+
+      const nextState = isOpen ? 'closed' : 'open';
+      if (nextState === 'open') {
+        content.style.setProperty('--starwind-accordion-content-height', `${content.scrollHeight}px`);
+        content.classList.remove('animate-accordion-up');
+        content.classList.add('animate-accordion-down');
+        content.addEventListener('animationend', () => {
+          content.classList.remove('animate-accordion-down');
+        }, { once: true });
+      } else {
+        content.style.setProperty('--starwind-accordion-content-height', `${content.scrollHeight}px`);
+        content.classList.remove('animate-accordion-down');
+        content.classList.add('animate-accordion-up');
+        content.addEventListener('animationend', () => {
+          content.classList.remove('animate-accordion-up');
+        }, { once: true });
+      }
+      item.setAttribute('data-state', nextState);
+      trigger.setAttribute('data-state', nextState);
+      trigger.setAttribute('aria-expanded', String(nextState === 'open'));
+      content.setAttribute('data-state', nextState);
+    });
+  }
+
+  initAccordions();
+  document.addEventListener('astro:after-swap', initAccordions);
+</script>

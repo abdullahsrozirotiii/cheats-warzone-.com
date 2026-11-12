@@ -1,0 +1,21 @@
+---
+import { LOCALES, getLocaleFromPathname, switchLocalePath } from '../i18n';
+const locale = getLocaleFromPathname(Astro.url.pathname);
+---
+<details class="language-menu relative" data-language-menu>
+  <summary class="inline-flex size-9 cursor-pointer list-none items-center justify-center rounded-lg border border-border/80 bg-background/50 hover:text-primary" aria-label="Choose language" title="Choose language">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="10"/><ellipse cx="12" cy="12" rx="4" ry="10"/><path d="M2 12h20"/></svg>
+  </summary>
+  <nav class="absolute right-0 top-[calc(100%+0.5rem)] z-50 min-w-40 rounded-xl border border-border bg-popover p-2 shadow-lg" aria-label="Languages">
+    {LOCALES.map(lang => <a href={`${switchLocalePath(Astro.url.pathname, lang.code)}${Astro.url.search}`} lang={lang.code} hreflang={lang.hreflang} data-language-link class="block rounded-md px-3 py-2 text-sm hover:bg-muted hover:text-primary" aria-current={lang.code === locale ? 'true' : undefined}>{lang.nativeName}</a>)}
+  </nav>
+</details>
+<style>summary::-webkit-details-marker { display: none; }</style>
+<script>
+  for (const link of document.querySelectorAll<HTMLAnchorElement>('[data-language-link]')) {
+    const url = new URL(link.href, window.location.origin);
+    url.search = window.location.search;
+    url.hash = window.location.hash;
+    link.href = `${url.pathname}${url.search}${url.hash}`;
+  }
+</script>

@@ -1,0 +1,187 @@
+---
+import Moon from "@tabler/icons/outline/moon.svg";
+import Sun from "@tabler/icons/outline/sun.svg";
+import type { HTMLAttributes } from "astro/types";
+import type { VariantProps } from "tailwind-variants";
+
+import { themeToggle } from "./variants";
+
+type Props = Omit<HTMLAttributes<"button">, "aria-pressed" | "defaultPressed" | "disabled" | "onChange" | "type" | "value"> & VariantProps<typeof themeToggle> & {
+  ariaLabel?: string;
+  defaultPressed?: boolean;
+  disabled?: boolean;
+  "data-slot"?: string;
+  pressed?: boolean;
+  syncGroup?: string;
+  value?: string;
+};
+
+const {
+  ariaLabel = "Toggle theme",
+  variant = "outline",
+  size = "md",
+  defaultPressed,
+  disabled = false,
+  pressed,
+  syncGroup = "starwind-theme",
+  value,
+  "data-slot": dataSlot = "theme-toggle",
+  class: className,
+  ...rest
+} = Astro.props;
+
+const initialPressed = pressed ?? defaultPressed ?? false;
+---
+
+<button
+  class={themeToggle({ variant, size, class: className })}
+  type="button"
+  disabled={disabled}
+  aria-label={ariaLabel}
+  aria-pressed={initialPressed ? "true" : "false"}
+  data-state={initialPressed ? "on" : "off"}
+  data-sw-toggle
+  data-sw-theme-toggle
+  data-sw-theme-control
+  data-theme-on="dark"
+  data-theme-off="light"
+  data-sync-group={syncGroup}
+  data-value={value}
+  data-pressed={initialPressed ? "" : undefined}
+  data-unpressed={initialPressed ? undefined : ""}
+  data-disabled={disabled ? "" : undefined}
+  {...rest}
+  data-slot={dataSlot}
+>
+  <slot>
+    <span class="theme-toggle-icons relative size-5" data-theme-icon-wrapper>
+      <slot name="light-icon">
+        {/* Visible in light mode (state=off). No data-ready gate — always visible without JS. */}
+        <Sun
+          class="theme-toggle-icon theme-toggle-icon--sun size-5"
+          aria-hidden="true"
+          data-theme-icon
+        />
+      </slot>
+
+      <slot name="dark-icon">
+        {/* Visible in dark mode (state=on). */}
+        <Moon
+          class="theme-toggle-icon theme-toggle-icon--moon size-5"
+          aria-hidden="true"
+          data-theme-icon
+        />
+      </slot>
+    </span>
+  </slot>
+</button>
+
+<style is:global>
+  .theme-toggle-icons {
+    display: grid;
+    place-items: center;
+  }
+
+  .theme-toggle-icon {
+    grid-area: 1 / 1;
+    display: block;
+  }
+
+  /* Default / light: show sun */
+  .theme-toggle-icon--sun {
+    opacity: 1;
+  }
+  .theme-toggle-icon--moon {
+    opacity: 0;
+  }
+
+  /* Pressed / dark control state */
+  [data-sw-theme-toggle][data-state='on'] .theme-toggle-icon--sun,
+  html.dark [data-sw-theme-toggle] .theme-toggle-icon--sun {
+    opacity: 0;
+  }
+  [data-sw-theme-toggle][data-state='on'] .theme-toggle-icon--moon,
+  html.dark [data-sw-theme-toggle] .theme-toggle-icon--moon {
+    opacity: 1;
+  }
+
+  /* Light document wins when control is explicitly off */
+  html:not(.dark) [data-sw-theme-toggle][data-state='off'] .theme-toggle-icon--sun {
+    opacity: 1;
+  }
+  html:not(.dark) [data-sw-theme-toggle][data-state='off'] .theme-toggle-icon--moon {
+    opacity: 0;
+  }
+</style>
+
+<script>
+  function applyTheme(isDark: boolean) {
+    document.documentElement.classList.toggle('dark', isDark);
+    const themeStr = isDark ? 'dark' : 'light';
+    try {
+      localStorage.setItem('theme', themeStr);
+      localStorage.setItem('colorTheme', themeStr);
+      localStorage.setItem('starwind-theme', themeStr);
+    } catch (e) {}
+
+    syncControls(isDark);
+
+    const details = {
+      theme: themeStr,
+      resolvedTheme: themeStr,
+      reason: 'toggle-click'
+    };
+    document.dispatchEvent(new CustomEvent('starwind:theme-change', { detail: details }));
+    document.dispatchEvent(new CustomEvent('theme:change', { detail: details }));
+  }
+
+  function syncControls(isDark: boolean) {
+    const toggles = document.querySelectorAll<HTMLElement>('[data-sw-theme-toggle]');
+    toggles.forEach((btn) => {
+      btn.setAttribute('aria-pressed', isDark ? 'true' : 'false');
+      btn.setAttribute('data-state', isDark ? 'on' : 'off');
+      if (isDark) {
+        btn.setAttribute('data-pressed', '');
+        btn.removeAttribute('data-unpressed');
+      } else {
+        btn.removeAttribute('data-pressed');
+        btn.setAttribute('data-unpressed', '');
+      }
+    });
+  }
+
+  function handleToggleClick(e: Event) {
+    e.preventDefault();
+    const isDark = document.documentElement.classList.contains('dark');
+    applyTheme(!isDark);
+  }
+
+  function setupThemeControls() {
+    const isDark = document.documentElement.classList.contains('dark');
+    syncControls(isDark);
+
+    const toggles = document.querySelectorAll<HTMLElement>('[data-sw-theme-toggle]');
+    toggles.forEach((btn) => {
+      if (!btn.dataset.themeBound) {
+        btn.dataset.themeBound = 'true';
+        btn.addEventListener('click', handleToggleClick);
+        btn.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            const isCurrentlyDark = document.documentElement.classList.contains('dark');
+            applyTheme(!isCurrentlyDark);
+          }
+        });
+      }
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupThemeControls);
+  } else {
+    setupThemeControls();
+  }
+
+  document.addEventListener('astro:after-swap', setupThemeControls);
+  document.addEventListener('starwind:init', setupThemeControls);
+</script>

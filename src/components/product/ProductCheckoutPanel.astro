@@ -1,0 +1,43 @@
+---
+import type { ProductPage } from '../../data/products';
+import Icon from '../icons/Icon.astro';
+import ProductIconWell from './ProductIconWell.astro';
+import { Button } from '@/components/starwind/button';
+
+interface Props {
+  product: ProductPage;
+}
+
+const { product } = Astro.props;
+---
+
+<aside
+  class="product-checkout text-left lg:sticky lg:top-24"
+  aria-labelledby={`checkout-${product.slug}`}
+>
+  <div class="overflow-hidden rounded-2xl border border-primary/35 bg-card shadow-md ring-1 ring-primary/15">
+    <div class="card-title-band flex items-center justify-start gap-3 px-5 py-4 text-left">
+      <ProductIconWell name="acqPackage" iconSize={20} class="bg-primary/15" />
+      <div class="min-w-0 text-left">
+        <p class="text-xs font-medium uppercase tracking-wider text-muted-foreground">Checkout</p>
+        <div id={`checkout-${product.slug}`} class="text-base font-semibold leading-snug">
+          {product.title}
+        </div>
+      </div>
+    </div>
+
+    <div class="px-5 pb-5 pt-5">
+      <Button
+        as="a"
+        href={product.buyUrl}
+        variant="primary"
+        size="lg"
+        class="w-full rounded-xl"
+        target="_self"
+      >
+        Buy now
+        <Icon name="arrowRight" size={17} />
+      </Button>
+    </div>
+  </div>
+</aside>

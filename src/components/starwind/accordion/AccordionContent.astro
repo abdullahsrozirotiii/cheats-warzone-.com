@@ -1,0 +1,19 @@
+---
+import type { HTMLAttributes } from "astro/types";
+import { accordionContent } from "./variants";
+
+type Props = HTMLAttributes<"div">;
+
+const { class: className, ...rest } = Astro.props;
+---
+
+<div
+  class={accordionContent({ class: className })}
+  data-state="closed"
+  data-slot="accordion-content"
+  {...rest}
+>
+  <div class="pt-0 pb-4">
+    <slot />
+  </div>
+</div>

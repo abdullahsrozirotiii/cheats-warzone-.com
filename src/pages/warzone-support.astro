@@ -1,0 +1,37 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { DEFAULT_LOCALE, getLocaleFromPathname, useTranslations } from '../i18n';
+
+const locale = Astro.locals.locale ?? getLocaleFromPathname(Astro.url.pathname) ?? DEFAULT_LOCALE;
+const t = useTranslations(locale);
+import { resolvePageSeo } from '../config/seo';
+import ContactSupportSection from '../components/ContactSupportSection.astro';
+import { breadcrumbSchema, webPageSchema } from '../utils/schema';
+
+const seo = resolvePageSeo('/warzone-support/');
+---
+
+<BaseLayout
+  title={seo.title}
+  description={seo.description}
+  jsonLd={[
+    webPageSchema({
+      name: t.support.title,
+      description: t.support.subtitle,
+      url: '/warzone-support/',
+    }),
+    breadcrumbSchema([
+      { name: 'Home', path: '/' },
+      { name: 'Support', path: '/warzone-support/' },
+    ]),
+  ]}
+>
+  <ContactSupportSection
+    titleId="support-page-title"
+    showTicketTips
+    breadcrumbs={[
+      { name: 'Home', path: '/' },
+      { name: 'Support', path: '/warzone-support/' },
+    ]}
+  />
+</BaseLayout>

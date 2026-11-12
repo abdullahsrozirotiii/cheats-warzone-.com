@@ -1,0 +1,275 @@
+---
+import { DEFAULT_LOCALE, getLocaleFromPathname, useTranslations } from '../i18n';
+import { warzoneCatalogCards } from '../data/products';
+import Icon from './icons/Icon.astro';
+import ResponsiveImage from './ResponsiveImage.astro';
+import { Button } from '@/components/starwind/button';
+import { resolveLocalImage } from '../utils/imageAssets';
+
+
+const locale = Astro.locals.locale ?? getLocaleFromPathname(Astro.url.pathname) ?? DEFAULT_LOCALE;
+const t = useTranslations(locale);
+interface Props {
+  heading?: 'h1' | 'h2';
+  titleId?: string;
+  /** When heading is h1, overrides the default showcase title for unique page H1s. */
+  pageH1?: string;
+}
+
+const { heading = 'h2', titleId, pageH1 } = Astro.props;
+const showcaseH1 =
+  pageH1 ??
+  'Warzone Cheats — Aimbot, ESP & Hacks – Undetected ESP &';
+const s = t.products;
+const FeatureHeading = heading === 'h1' ? 'h2' : 'h3';
+
+const main = warzoneCatalogCards.find((card) => card.title === 'WARZONE') ?? warzoneCatalogCards[0];
+const features = warzoneCatalogCards.filter((card) => card.label === 'Included with Warzone');
+const companions = warzoneCatalogCards.filter(
+  (card) => card !== main && card.label !== 'Included with Warzone',
+);
+
+const featureId = (title: string) => title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+const featureImages: Record<string, string> = {
+  Aimbot: '/images/aimbotproduct.jpeg',
+  'Player ESP': '/images/playerproduct.jpg',
+  'Bots ESP': '/images/product-bots-esp.jpeg',
+  'Items ESP': '/images/gadegtespproduct.jpeg',
+  Colors: '/images/product-colors.jpeg',
+  'Key Binds': '/images/product-keybinds.jpeg',
+  Config: '/images/product-config.jpeg',
+};
+const featureAlts: Record<string, string> = {
+  Aimbot: 'Warzone cheats aimbot module preview',
+  'Player ESP': 'Warzone cheats player ESP wallhack overlay screenshot',
+  'Bots ESP': 'Warzone cheats bots ESP health and distance overlay preview',
+  'Items ESP': 'Warzone cheats items ESP loot filter overlay preview',
+  Colors: 'Warzone cheats custom ESP and aimbot color settings preview',
+  'Key Binds': 'Warzone cheats custom key bind configuration preview',
+  Config: 'Warzone cheats config save and load manager screenshot',
+};
+---
+
+<div class="space-y-4" data-product-showcase>
+  <div class="overflow-hidden rounded-3xl border border-neutral-200 bg-white/95 shadow-sm backdrop-blur-xl dark:border-border/70 dark:bg-card/45">
+    <div class="flex flex-col gap-6 border-b border-border/60 p-6 md:flex-row md:items-end md:justify-between md:p-8">
+      <div class="max-w-2xl">
+        <p class="section-header__eyebrow">{s.eyebrow}</p>
+        {
+          heading === 'h1' ? (
+            <h1 id={titleId} class="mt-2 text-3xl font-bold uppercase leading-tight md:text-4xl">
+              {showcaseH1}
+            </h1>
+          ) : (
+            <h2 id={titleId} class="mt-2 text-3xl font-bold uppercase leading-tight md:text-4xl">
+              {main?.title}
+            </h2>
+          )
+        }
+        <p class="mt-3 text-sm leading-relaxed text-muted-foreground md:text-base">{s.subtitle}</p>
+        <p class="mt-4 inline-flex items-center gap-2 text-sm font-medium">
+          <span class="rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 text-xs uppercase tracking-wide text-primary">
+            {main?.badge}
+          </span>
+          {main?.label}
+        </p>
+      </div>
+      {
+        main && (
+          <div class="flex shrink-0 flex-wrap gap-3">
+            <Button as="a" href={main.buyUrl} variant="primary" class="rounded-xl" target="_self">
+              Buy now
+            </Button>
+            <Button as="a" href={main.href} variant="outline" class="rounded-xl">
+              View details
+            </Button>
+          </div>
+        )
+      }
+    </div>
+
+    <div class="relative grid min-w-0 lg:grid-cols-[13rem_minmax(0,1fr)] lg:items-start">
+      <div
+        class="flex gap-2 overflow-x-auto border-b border-border/60 p-3 lg:absolute lg:inset-y-0 lg:left-0 lg:w-52 lg:flex-col lg:overflow-y-auto lg:border-r lg:border-b-0"
+        role="tablist"
+        aria-label="Call of Duty Warzone features"
+      >
+        {
+          features.map((feature, index) => {
+            const id = featureId(feature.title);
+            return (
+              <button
+                type="button"
+                class:list={[
+                  'product-feature-tab flex min-w-[11rem] items-center gap-3 rounded-2xl border border-neutral-200 bg-white px-3.5 py-3 text-left shadow-sm backdrop-blur-md transition duration-200 ease-in-out hover:border-primary/40 hover:shadow-[0_0_10px_-8px_var(--primary)] motion-reduce:transform-none lg:min-w-0 lg:w-full dark:border-border/70 dark:bg-background/35 dark:shadow-none',
+                  index === 0 && 'is-selected',
+                ]}
+                role="tab"
+                id={`product-tab-${id}`}
+                aria-controls={`product-panel-${id}`}
+                aria-selected={index === 0}
+                tabindex={index === 0 ? 0 : -1}
+                data-feature-tab={id}
+              >
+                <span class="flex size-9 shrink-0 items-center justify-center rounded-xl bg-muted text-primary">
+                  <Icon name={feature.icon} size={16} />
+                </span>
+                <span class="min-w-0">
+                  <span class="block text-sm font-semibold">{feature.title}</span>
+                  <span class="block text-xs text-muted-foreground">Included</span>
+                </span>
+              </button>
+            );
+          })
+        }
+      </div>
+
+      <div class="min-w-0 lg:col-start-2">
+        {
+          features.map((feature, index) => {
+            const id = featureId(feature.title);
+            const imageSrc = featureImages[feature.title] ?? '/images/aimbotproduct.jpeg';
+            const sourceWidth = Math.min(resolveLocalImage(imageSrc)?.width ?? 989, 3840);
+            const imageWidths = [...new Set([400, 640, 960, 1280, 1920, 2560, 3840].filter(width => width <= sourceWidth).concat(sourceWidth))].sort((a, b) => a - b);
+            return (
+              <div
+                class="product-panel grid min-w-0 items-start gap-4 p-4 sm:p-5 md:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] md:gap-4 lg:min-h-80"
+                role="tabpanel"
+                id={`product-panel-${id}`}
+                aria-labelledby={`product-tab-${id}`}
+                data-feature-panel={id}
+                hidden={index !== 0}
+              >
+                <div class="feature-copy min-w-0">
+                  <p class="text-xs font-medium uppercase tracking-wider text-primary">Included with Warzone</p>
+                  <FeatureHeading class="mt-2 text-xl font-semibold leading-tight tracking-tight md:text-2xl">{feature.title}</FeatureHeading>
+                  <ul class:list={['mt-4 grid gap-x-4 gap-y-3', feature.features.length > 4 && 'feature-list--long']}>
+                    {feature.features.map((item) => (
+                      <li class="flex min-w-0 items-start gap-2.5 text-sm leading-relaxed text-muted-foreground">
+                        <Icon name="circleCheck" size={15} class="mt-1 shrink-0 text-primary" />
+                        <span class="min-w-0 break-words">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div class="feature-preview w-full min-w-0 self-start overflow-hidden rounded-2xl border border-border/70 bg-muted/30 p-1 shadow-sm">
+                  <ResponsiveImage
+                    src={imageSrc}
+                    alt={featureAlts[feature.title] ?? `${feature.title} product preview`}
+                    width={resolveLocalImage(imageSrc)?.width ?? 989}
+                    height={resolveLocalImage(imageSrc)?.height ?? 556}
+                    loading="lazy"
+                    blurUp={false}
+                    widths={imageWidths}
+                    quality={92}
+                    sizes="(min-width: 1152px) 500px, (min-width: 1024px) calc((100vw - 304px) * 0.6), (min-width: 768px) calc((100vw - 96px) * 0.6), calc(100vw - 88px)"
+                    class="h-auto w-full rounded-xl object-contain"
+                  />
+                </div>
+              </div>
+            );
+          })
+        }
+      </div>
+    </div>
+  </div>
+
+  {
+    companions.map((item) => (
+      <div class="product-companion flex flex-col gap-4 rounded-3xl border border-neutral-200 bg-white/95 p-5 backdrop-blur-xl transition duration-200 ease-in-out hover:border-primary/35 hover:shadow-[0_0_10px_-8px_var(--primary)] motion-reduce:transform-none sm:flex-row sm:items-center sm:justify-between dark:border-border/70 dark:bg-card/45">
+        <div class="flex items-start gap-3">
+          <span class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted text-primary">
+            <Icon name={item.icon} size={18} />
+          </span>
+          <div>
+            <p class="text-xs font-medium uppercase tracking-wider text-muted-foreground">{item.label}</p>
+            <p class="mt-0.5 font-semibold">{item.title}</p>
+            <p class="mt-1 text-sm text-muted-foreground">{item.features[0]}</p>
+          </div>
+        </div>
+        <Button as="a" href={item.buyUrl} variant="outline" class="rounded-xl" target="_self">
+          Buy now
+        </Button>
+      </div>
+    ))
+  }
+</div>
+
+<style>
+  .feature-copy {
+    container-type: inline-size;
+  }
+
+  @container (min-width: 18rem) {
+    .feature-list--long {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  .feature-preview :global(picture) {
+    display: contents;
+  }
+
+  .feature-preview :global(img) {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+  }
+
+  .product-panel[hidden] {
+    display: none !important;
+  }
+
+  .product-feature-tab.is-selected {
+    border-color: color-mix(in oklch, var(--primary) 45%, transparent);
+    background: color-mix(in oklch, var(--primary) 10%, transparent);
+    box-shadow: 0 0 10px -8px var(--primary);
+  }
+
+  .product-panel {
+    animation: product-panel-in 300ms ease-in-out;
+  }
+
+  @keyframes product-panel-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .product-panel {
+      animation: none;
+    }
+  }
+</style>
+
+<script>
+  function initProductShowcase(root: HTMLElement) {
+    const tabs = [...root.querySelectorAll<HTMLButtonElement>('[data-feature-tab]')];
+    const panels = [...root.querySelectorAll<HTMLElement>('[data-feature-panel]')];
+
+    const show = (id: string) => {
+      for (const tab of tabs) {
+        const selected = tab.dataset.featureTab === id;
+        tab.setAttribute('aria-selected', selected ? 'true' : 'false');
+        tab.classList.toggle('is-selected', selected);
+        tab.tabIndex = selected ? 0 : -1;
+      }
+      for (const panel of panels) {
+        panel.hidden = panel.dataset.featurePanel !== id;
+      }
+    };
+
+    for (const tab of tabs) {
+      tab.addEventListener('click', () => show(tab.dataset.featureTab ?? ''));
+    }
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-product-showcase]').forEach(initProductShowcase);
+</script>

@@ -1,0 +1,45 @@
+﻿---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { DEFAULT_LOCALE, getLocaleFromPathname, useTranslations } from '../i18n';
+
+const locale = Astro.locals.locale ?? getLocaleFromPathname(Astro.url.pathname) ?? DEFAULT_LOCALE;
+const t = useTranslations(locale);
+import Icon from '../components/icons/Icon.astro';
+import { Button } from '@/components/starwind/button';
+import { ROUTES } from '../utils/path';
+---
+
+<BaseLayout
+  title={`Page not found | ${t.site.name}`}
+  description="That URL is not on cheats-warzone.com. Use the links below to continue."
+  noindex={true}
+>
+  <section class="py-16 md:py-24">
+    <div class="mx-auto max-w-lg px-5 text-center">
+      <p class="text-sm font-semibold uppercase tracking-wider text-primary">404</p>
+      <h1 class="mt-3 text-3xl font-bold uppercase md:text-4xl">Page not found</h1>
+      <p class="mt-4 text-muted-foreground">
+        That URL does not exist on cheats-warzone.com or may have moved after a redirect cleanup.
+      </p>
+      <p class="mt-3 text-sm leading-relaxed text-muted-foreground">
+        Try the homepage for Call of Duty Warzone cheats overview, open the products hub for ESP and aimbot notes, or browse
+        the blog for guides and patch checklists. The FAQ and Support pages cover buying questions and loader help.
+      </p>
+      <p class="mt-3 text-sm leading-relaxed text-muted-foreground">
+        If you followed an old bookmark for Lite, Pro, UGC, Skin Changer, or a renamed article, use the WARZONE Cheats
+        product or blog index links below—those routes replace outdated paths.
+      </p>
+      <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
+        <Button as="a" href={ROUTES.home} variant="primary">
+          Home
+          <Icon name="arrowRight" size={17} />
+        </Button>
+        <Button as="a" href={ROUTES.products} variant="outline">Products</Button>
+        <Button as="a" href={ROUTES.productsElite} variant="outline">WARZONE Cheats</Button>
+        <Button as="a" href={ROUTES.blog} variant="outline">Blog</Button>
+        <Button as="a" href={ROUTES.faq} variant="outline">FAQ</Button>
+        <Button as="a" href={ROUTES.support} variant="outline">Support</Button>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

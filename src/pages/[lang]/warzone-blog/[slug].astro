@@ -1,0 +1,10 @@
+---
+import Page from '../../warzone-blog/[slug].astro';
+import { nativeStaticPaths } from '../../../i18n/routing';
+import { getAllBlogSlugs } from '../../../data/blog';
+
+export function getStaticPaths() {
+  return nativeStaticPaths(getAllBlogSlugs());
+}
+---
+<Page />

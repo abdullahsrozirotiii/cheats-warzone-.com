@@ -1,0 +1,40 @@
+# Cloudflare Pages path redirects (trailingSlash: always).
+# Host redirects (www → cheats-warzone.com) are not allowed here — see functions/_middleware.js.
+# TLS/HTTPS is handled by Cloudflare Always Use HTTPS.
+
+# Checkout (external)
+/go/warzone            https://zadeyo.com/go/ABDULLAH?to=%2Fproducts%2Fwarzone 302
+/go/warzone/           https://zadeyo.com/go/ABDULLAH?to=%2Fproducts%2Fwarzone 302
+/go/skin-changer       https://zadeyo.com/go/ABDULLAH?to=%2Fproducts%2Fwarzone 302
+/go/skin-changer/      https://zadeyo.com/go/ABDULLAH?to=%2Fproducts%2Fwarzone 302
+/go/ugc                https://zadeyo.com/go/ABDULLAH?to=%2Fproducts%2Fwarzone 302
+/go/ugc/               https://zadeyo.com/go/ABDULLAH?to=%2Fproducts%2Fwarzone 302
+/manifest.json         /site.webmanifest 301
+
+# Product hub shortcuts + retired tiers
+/products              /products/warzone-cheats/ 301
+/products/             /products/warzone-cheats/ 301
+/products/warzone-cheats/lite           /products/warzone-cheats/elite/ 301
+/products/warzone-cheats/lite/          /products/warzone-cheats/elite/ 301
+/products/warzone-cheats/pro            /products/warzone-cheats/elite/ 301
+/products/warzone-cheats/pro/           /products/warzone-cheats/elite/ 301
+/products/warzone-cheats/skin-changer   /products/warzone-cheats/unlock-all/ 301
+/products/warzone-cheats/skin-changer/  /products/warzone-cheats/unlock-all/ 301
+/products/warzone-cheats/utilities      /products/warzone-cheats/ 301
+/products/warzone-cheats/utilities/     /products/warzone-cheats/ 301
+/products/warzone-cheats/account-recovery   /products/warzone-cheats/elite/ 301
+/products/warzone-cheats/account-recovery/  /products/warzone-cheats/elite/ 301
+
+# Legacy /cheats paths
+/cheats                /products/warzone-cheats/ 301
+/cheats/               /products/warzone-cheats/ 301
+/cheats/lite           /products/warzone-cheats/elite/ 301
+/cheats/lite/          /products/warzone-cheats/elite/ 301
+/cheats/pro            /products/warzone-cheats/elite/ 301
+/cheats/pro/           /products/warzone-cheats/elite/ 301
+/cheats/elite          /products/warzone-cheats/elite/ 301
+/cheats/elite/         /products/warzone-cheats/elite/ 301
+/cheats/compare        /warzone-blog/cheats-features/ 301
+/cheats/compare/       /warzone-blog/cheats-features/ 301
+/contact               /warzone-support/ 301
+/contact/              /warzone-support/ 301

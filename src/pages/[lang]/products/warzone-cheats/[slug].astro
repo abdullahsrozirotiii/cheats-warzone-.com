@@ -1,0 +1,10 @@
+---
+import Page from '../../../products/warzone-cheats/[slug].astro';
+import { nativeStaticPaths } from '../../../../i18n/routing';
+import { getAllProductSlugs } from '../../../../data/products';
+
+export function getStaticPaths() {
+  return nativeStaticPaths(getAllProductSlugs());
+}
+---
+<Page />

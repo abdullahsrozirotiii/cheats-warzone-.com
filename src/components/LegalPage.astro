@@ -1,0 +1,73 @@
+---
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import Icon from './icons/Icon.astro';
+import { Button } from '@/components/starwind/button';
+import { Prose } from '@/components/starwind/prose';
+import { ROUTES } from '../utils/path';
+import { DEFAULT_LOCALE, getLocaleFromPathname, useTranslations } from '../i18n';
+
+
+const locale = Astro.locals.locale ?? getLocaleFromPathname(Astro.url.pathname) ?? DEFAULT_LOCALE;
+const t = useTranslations(locale);
+interface Props {
+  title: string;
+  description: string;
+  breadcrumbLabel: string;
+  image?: { src: string; alt: string; caption?: string };
+  sections: { heading: string; paragraphs: string[] }[];
+}
+
+const { title, description, breadcrumbLabel, image, sections } = Astro.props;
+---
+
+<article class="py-8 md:py-12">
+  <div class="mx-auto max-w-3xl px-5">
+    <div class="text-left">
+    <Breadcrumbs
+      items={[
+        { name: 'Home', path: '/' },
+        { name: breadcrumbLabel, path: Astro.url.pathname },
+      ]}
+    />
+    </div>
+    <header class="mt-4 space-y-4 text-center">
+      <h1 class="text-3xl font-bold normal-case md:text-4xl">{title}</h1>
+      <p class="text-lg leading-relaxed text-muted-foreground">{description}</p>
+    </header>
+
+    {image && (
+      <figure class="mt-8 overflow-hidden rounded-2xl border border-border/70 shadow-sm">
+        <img
+          src={image.src}
+          alt={image.alt}
+          width={800}
+          height={450}
+          loading="eager"
+          class="aspect-video w-full object-cover"
+        />
+        {image.caption && (
+          <figcaption class="p-3 text-center text-xs text-muted-foreground">{image.caption}</figcaption>
+        )}
+      </figure>
+    )}
+
+    <Prose class="mt-10 max-w-none text-left">
+      {sections.map((section) => (
+        <section class="mt-8">
+          <h2>{section.heading}</h2>
+          {section.paragraphs.map((paragraph) => (
+            <p>{paragraph}</p>
+          ))}
+        </section>
+      ))}
+    </Prose>
+
+    <div class="mt-12 flex flex-wrap justify-center gap-3 border-t border-border pt-8">
+      <Button as="a" href={ROUTES.support} variant="primary" size="sm">
+        {t.footer.support}
+        <Icon name="mail" size={16} />
+      </Button>
+      <Button as="a" href={ROUTES.home} variant="outline" size="sm">Home</Button>
+    </div>
+  </div>
+</article>

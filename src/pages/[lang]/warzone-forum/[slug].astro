@@ -1,0 +1,10 @@
+---
+import Page from '../../warzone-forum/[slug].astro';
+import { nativeStaticPaths } from '../../../i18n/routing';
+import { forumPosts } from '../../../data/forum';
+
+export function getStaticPaths() {
+  return nativeStaticPaths(forumPosts.map(post => post.slug));
+}
+---
+<Page />

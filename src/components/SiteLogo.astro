@@ -1,0 +1,27 @@
+---
+interface Props {
+  width?: number;
+  height?: number;
+  class?: string;
+  loading?: 'lazy' | 'eager';
+  alt?: string;
+}
+
+const {
+  width = 32,
+  height = 32,
+  class: className,
+  loading = 'lazy',
+  alt = 'Warzone Cheats',
+} = Astro.props;
+---
+
+<img
+  src="/images/brand/warzone-logo.png"
+  alt={alt}
+  width={width}
+  height={height}
+  loading={loading}
+  decoding="async"
+  class={className}
+/>

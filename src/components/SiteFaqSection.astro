@@ -1,0 +1,72 @@
+---
+import type { SiteFaqItem, FaqTopic } from '../data/faq';
+import FaqSection from './FaqSection.astro';
+import {
+  FAQ_LANDING_VISIBLE_COUNT,
+  SITE_FAQ_FILTER_TOPICS,
+  faqFilterTopicsForItems,
+} from '../data/faq';
+import { DEFAULT_LOCALE, getLocaleFromPathname, useTranslations } from '../i18n';
+
+interface BreadcrumbItem {
+  name: string;
+  path: string;
+}
+
+interface Props {
+  items: SiteFaqItem[];
+  id?: string;
+  titleId?: string;
+  breadcrumbs?: BreadcrumbItem[];
+  class?: string;
+  /** Full /warzone-faq/ experience — all topics chip bar */
+  variant?: 'full' | 'contextual';
+  filterTopics?: FaqTopic[];
+  headingLevel?: 'h1' | 'h2';
+  eyebrow?: string;
+  title?: string;
+  subtitle?: string;
+  initialVisible?: number;
+}
+
+const {
+  items,
+  id,
+  titleId = 'faq-heading',
+  breadcrumbs,
+  class: className,
+  variant = 'contextual',
+  filterTopics: filterTopicsProp,
+  headingLevel = 'h2',
+  eyebrow,
+  title,
+  subtitle,
+  initialVisible = FAQ_LANDING_VISIBLE_COUNT,
+} = Astro.props;
+
+const locale = Astro.locals.locale ?? getLocaleFromPathname(Astro.url.pathname) ?? DEFAULT_LOCALE;
+const t = useTranslations(locale);
+const copy =
+  variant === 'full'
+    ? { eyebrow: t.faq.eyebrow, title: t.faq.title, subtitle: t.faq.subtitle }
+    : { eyebrow: t.faq.eyebrow, title: t.faq.title, subtitle: t.faq.subtitle };
+const filterTopics =
+  filterTopicsProp ?? (variant === 'full' ? SITE_FAQ_FILTER_TOPICS : faqFilterTopicsForItems(items));
+const showFilters = filterTopics.length > 1;
+---
+
+<FaqSection
+  id={id}
+  breadcrumbs={breadcrumbs}
+  items={items}
+  eyebrow={eyebrow ?? copy.eyebrow}
+  title={title ?? copy.title}
+  subtitle={subtitle ?? copy.subtitle}
+  titleId={titleId}
+  showFilters={showFilters}
+  filterTopics={filterTopics}
+  headingLevel={headingLevel}
+  initialVisible={initialVisible}
+  seeMoreLabel={t.faq.seeMore ?? 'See more'}
+  class={className}
+/>

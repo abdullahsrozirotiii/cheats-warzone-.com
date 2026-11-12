@@ -1,0 +1,160 @@
+---
+import '../styles/product-cheat-page.css';
+import { DEFAULT_LOCALE, getLocaleFromPathname, useTranslations } from '../i18n';
+import { cheatPages, productPages } from '../data/products';
+import { cheatTierIcons, productCategoryIcons } from '../data/sectionIcons';
+import { cheatPath } from '../utils/path';
+import { checkoutForSlug } from '../config/checkout';
+import SectionHeader from './SectionHeader.astro';
+import CatalogCard from './CatalogCard.astro';
+import Carousel from './starwind/carousel/Carousel.astro';
+import CarouselContent from './starwind/carousel/CarouselContent.astro';
+import CarouselItem from './starwind/carousel/CarouselItem.astro';
+import CarouselPrevious from './starwind/carousel/CarouselPrevious.astro';
+import CarouselNext from './starwind/carousel/CarouselNext.astro';
+
+interface Props {
+  titleId?: string;
+}
+
+const locale = Astro.locals.locale ?? getLocaleFromPathname(Astro.url.pathname) ?? DEFAULT_LOCALE;
+const t = useTranslations(locale);
+const s = t.products;
+
+const { titleId = 'products-title' } = Astro.props;
+
+const primary = cheatPages[0];
+const utilities = productPages
+  .filter((p) => p.kind === 'utility')
+  .sort((a, b) => {
+    const order = ['hwid-spoofer', 'ugc', 'unlock-all'];
+    return order.indexOf(a.slug) - order.indexOf(b.slug);
+  });
+
+const homeTitle = 'Buy Warzone cheats and compare utilities';
+const homeSubtitle =
+  'One Warzone cheats suite with aimbot, ESP, and configs—plus HWID Spoofer, UGC, and Skin Changer on Windows PC.';
+
+type CarouselCard = {
+  slug: string;
+  title: string;
+  label: string;
+  href: string;
+  buyUrl: string;
+  features: string[];
+  more: number;
+  icon: import('./icons/types').IconName;
+  badge?: string;
+  variant?: 'essential' | 'popular' | 'limited';
+  maxFeatures: number;
+};
+
+const cards: CarouselCard[] = [];
+
+if (primary) {
+  cards.push({
+    slug: primary.slug,
+    title: 'Warzone Cheats',
+    label: 'Private',
+    href: cheatPath(primary.slug),
+    buyUrl: checkoutForSlug(primary.slug),
+    features: primary.features,
+    more: Math.max(0, primary.features.length - 4),
+    icon: cheatTierIcons.WARZONE ?? 'crosshair',
+    badge: primary.badge,
+    variant: primary.variant,
+    maxFeatures: 4,
+  });
+}
+
+for (const product of utilities) {
+  const displayTitle = product.slug === 'unlock-all' ? 'Skin Changer' : product.title;
+  cards.push({
+    slug: product.slug,
+    title: displayTitle,
+    label: product.category ?? 'Utility',
+    href: cheatPath(product.slug),
+    buyUrl: checkoutForSlug(product.slug),
+    features: product.features,
+    more: product.more,
+    icon: productCategoryIcons[product.category ?? ''] ?? 'featureUtilitySuite',
+    badge: product.badge,
+    maxFeatures: 4,
+  });
+}
+---
+
+<section
+  id="products"
+  class="scroll-mt-24 py-16 md:py-24"
+  aria-labelledby={titleId}
+>
+  <div class="mx-auto max-w-6xl px-5">
+    <div
+      class="products-carousel"
+      data-products-carousel
+      data-card-count={cards.length}
+    >
+      <Carousel
+        class="products-carousel__root w-full"
+        autoInit={true}
+        opts={{ align: 'start', loop: false, containScroll: 'trimSnaps' }}
+      >
+        <div class="products-carousel__head">
+          <SectionHeader
+            eyebrow={s.eyebrow}
+            title={homeTitle}
+            desc={homeSubtitle}
+            titleId={titleId}
+          />
+        </div>
+
+        <CarouselContent class="products-carousel__track products-carousel__stage">
+            {
+              cards.map((card) => (
+                <CarouselItem class="products-carousel__slide">
+                  <CatalogCard
+                    class="catalog-card--carousel h-full"
+                    label={card.label}
+                    title={card.title}
+                    href={card.href}
+                    buyUrl={card.buyUrl}
+                    features={card.features}
+                    more={card.more}
+                    icon={card.icon}
+                    badge={card.badge}
+                    variant={card.variant}
+                    maxFeatures={card.maxFeatures}
+                    buyLabel="Buy now"
+                    viewLabel="View details"
+                  />
+                </CarouselItem>
+              ))
+            }
+          </CarouselContent>
+          <CarouselPrevious
+            variant="outline"
+            size="icon"
+            class="products-carousel__arrow products-carousel__arrow--prev"
+            hidden
+          />
+          <CarouselNext
+            variant="outline"
+            size="icon"
+            class="products-carousel__arrow products-carousel__arrow--next"
+          />
+      </Carousel>
+    </div>
+  </div>
+</section>
+
+<script>
+  const loadCarousel = () =>
+    import('../scripts/products-carousel').then(({ setupProductsCarousel }) => setupProductsCarousel());
+
+  if (typeof window.requestIdleCallback === 'function') {
+    window.requestIdleCallback(loadCarousel, { timeout: 3000 });
+  } else {
+    window.setTimeout(loadCarousel, 120);
+  }
+</script>

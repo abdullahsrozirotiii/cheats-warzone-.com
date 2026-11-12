@@ -1,0 +1,9 @@
+/* Outfit is loaded from Google Fonts in BaseLayout (WarzoneCheats UI).
+   Kept so any leftover /fonts/faces.css links stay harmless. */
+@font-face {
+  font-family: "Outfit";
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: optional;
+  src: local("Outfit");
+}

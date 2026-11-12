@@ -1,0 +1,29 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import HeroSection from '../components/HeroSection.astro';
+import FeaturesSection from '../components/FeaturesSection.astro';
+import WhySetupSection from '../components/WhySetupSection.astro';
+import ProductsSection from '../components/ProductsSection.astro';
+import ContentSections from '../components/ContentSections.astro';
+import { resolvePageSeo } from '../config/seo';
+import { faqPageSchema, homepageProductSchema, organizationSchema, videoObjectSchema, websiteSchema } from '../utils/schema';
+import { getLocalizedFaqs } from '../data/faq';
+import { DEFAULT_LOCALE, getLocaleFromPathname } from '../i18n';
+
+const seo = resolvePageSeo('/');
+const locale = Astro.locals.locale ?? getLocaleFromPathname(Astro.url.pathname) ?? DEFAULT_LOCALE;
+const homeFaqs = getLocalizedFaqs(locale);
+---
+
+<BaseLayout
+  title={seo.title}
+  description={seo.description}
+  jsonLd={[websiteSchema(), organizationSchema(), homepageProductSchema(), videoObjectSchema(), faqPageSchema(homeFaqs.map((f, i) => ({ num: String(i + 1).padStart(2, '0'), q: f.q, a: f.a.replace(/<[^>]+>/g, '') })))]}
+>
+  <link slot="head" rel="preload" as="image" href="/images/posters/hero-poster.webp" fetchpriority="low" />
+  <HeroSection />
+  <FeaturesSection />
+  <ProductsSection />
+  <WhySetupSection />
+  <ContentSections />
+</BaseLayout>

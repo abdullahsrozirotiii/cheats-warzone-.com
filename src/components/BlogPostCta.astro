@@ -1,0 +1,27 @@
+---
+import Icon from './icons/Icon.astro';
+import { Button } from '@/components/starwind/button';
+import { WARZONE_BUY_URL } from '../config/checkout';
+
+interface Props {
+  title: string;
+  html: string;
+  href: string;
+}
+
+const { title, html } = Astro.props;
+---
+
+<aside class="blog-post-cta not-prose my-8" aria-label={title}>
+  <div class="blog-post-cta__icon" aria-hidden="true">
+    <Icon name="package" size={20} />
+  </div>
+  <div class="blog-post-cta__body">
+    <div class="blog-post-cta__title">{title}</div>
+    <div class="blog-post-cta__text" set:html={html} />
+    <Button as="a" href={WARZONE_BUY_URL} variant="primary" size="sm" class="blog-post-cta__btn justify-start" target="_self">
+      Buy now
+      <Icon name="arrowRight" size={16} />
+    </Button>
+  </div>
+</aside>

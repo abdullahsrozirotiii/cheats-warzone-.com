@@ -1,0 +1,105 @@
+---
+import { DEFAULT_LOCALE, getLocaleFromPathname, useTranslations } from '../i18n';
+import { cheatPages, productPages } from '../data/products';
+import { cheatTierIcons, productCategoryIcons } from '../data/sectionIcons';
+import { cheatPath } from '../utils/path';
+import { checkoutForSlug } from '../config/checkout';
+import SectionHeader from './SectionHeader.astro';
+import CatalogCard from './CatalogCard.astro';
+
+interface Props {
+  /** Show section header (product hub page). Home `#products` keeps its own heading via titleId. */
+  showHeader?: boolean;
+  titleId?: string;
+  /** Hub page H1 lives outside; home uses section header from products copy. */
+  variant?: 'hub' | 'home';
+}
+
+const locale = Astro.locals.locale ?? getLocaleFromPathname(Astro.url.pathname) ?? DEFAULT_LOCALE;
+const t = useTranslations(locale);
+const s = t.products;
+const c = t.cheats;
+
+const { showHeader = true, titleId, variant = 'hub' } = Astro.props;
+
+const primary = cheatPages[0];
+const primaryMore = primary ? Math.max(0, primary.features.length - 6) : 0;
+const utilities = productPages
+  .filter((p) => p.kind === 'utility')
+  .sort((a, b) => {
+    const order = ['hwid-spoofer', 'ugc', 'unlock-all'];
+    return order.indexOf(a.slug) - order.indexOf(b.slug);
+  });
+
+const hubTitle = 'Buy Warzone cheats and compare utilities';
+const hubSubtitle =
+  'Choose Warzone cheats with aimbot, ESP, and configs—plus HWID Spoofer, UGC, and Skin Changer on Windows PC.';
+---
+
+<section
+  id="products"
+  class:list={[variant === 'home' && 'scroll-mt-24 py-16 md:py-24', variant === 'hub' && 'pb-4']}
+  aria-labelledby={titleId ?? (variant === 'home' ? 'products-title' : 'products-catalog-title')}
+>
+  <div class="mx-auto max-w-6xl px-5">
+    {
+      showHeader && variant === 'home' && (
+        <SectionHeader eyebrow={s.eyebrow} title={s.title} desc={s.subtitle} titleId={titleId ?? 'products-title'} />
+      )
+    }
+    {
+      showHeader && variant === 'hub' && (
+        <header class="max-w-3xl">
+          <p class="section-header__eyebrow">{s.eyebrow}</p>
+          <h1 id={titleId ?? 'products-catalog-title'} class="mt-2 text-3xl font-bold uppercase leading-tight md:text-4xl">
+            {hubTitle}
+          </h1>
+          <p class="mt-3 text-sm leading-relaxed text-muted-foreground md:text-base">{hubSubtitle}</p>
+        </header>
+      )
+    }
+
+    <div class:list={['space-y-6', showHeader && 'mt-10', !showHeader && 'mt-0']}>
+      {
+        primary && (
+          <CatalogCard
+            class="catalog-card--carousel catalog-card--featured"
+            label="Private"
+            title="Warzone Cheats"
+            href={cheatPath(primary.slug)}
+            buyUrl={checkoutForSlug(primary.slug)}
+            features={primary.features}
+            more={primaryMore}
+            icon={cheatTierIcons.WARZONE ?? 'crosshair'}
+            badge={primary.badge}
+            variant={primary.variant}
+            maxFeatures={6}
+            featureColumns={2}
+            buyLabel="Buy now"
+            viewLabel="View details"
+          />
+        )
+      }
+
+      <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {
+          utilities.map((product) => (
+            <CatalogCard
+              class="catalog-card--carousel h-full"
+              label={product.category ?? 'Utility'}
+              title={product.slug === 'unlock-all' ? 'Skin Changer' : product.title}
+              href={cheatPath(product.slug)}
+              buyUrl={checkoutForSlug(product.slug)}
+              features={product.features}
+              more={product.more}
+              icon={productCategoryIcons[product.category ?? ''] ?? 'featureUtilitySuite'}
+              badge={product.badge}
+              buyLabel="Buy now"
+              viewLabel="View details"
+            />
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</section>

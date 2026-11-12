@@ -1,0 +1,30 @@
+{
+  "name": "WarzoneCheats",
+  "short_name": "WarzoneCheats",
+  "description": "Call of Duty Warzone cheats for Windows PC. Player ESP, aimbot, and recoil layers. Licenses start at $35.",
+  "start_url": "/",
+  "scope": "/",
+  "id": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "browser"],
+  "orientation": "any",
+  "background_color": "#0b1018",
+  "theme_color": "#2d6ee2",
+  "lang": "en-US",
+  "dir": "ltr",
+  "categories": ["games", "utilities"],
+  "icons": [
+    {
+      "src": "/favicon-180.webp",
+      "sizes": "180x180",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon-180.webp",
+      "sizes": "180x180",
+      "type": "image/webp",
+      "purpose": "maskable"
+    }
+  ]
+}

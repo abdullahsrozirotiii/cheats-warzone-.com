@@ -1,0 +1,248 @@
+---
+import '../../styles/blog-pages.css';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { useTranslations } from '../../i18n';
+import { getAllBlogSlugs, getBlogPost, getRelatedBlogPosts } from '../../data/blog';
+import { pageTitle } from '../../config/seo';
+import { getPageSeoEntry } from '../../config/pageSeo';
+import { auditPages } from '../../config/auditMarkup';
+import {
+  articleSchema,
+  breadcrumbSchema,
+  faqPageSchema,
+  parseBlogDate,
+} from '../../utils/schema';
+import { WARZONE_BUY_URL, resolveCheckoutHref } from '../../config/checkout';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import ResponsiveImage from '../../components/ResponsiveImage.astro';
+import { BLOG_HERO_QUALITY } from '../../utils/optimizedImage';
+import BlogSidebar from '../../components/BlogSidebar.astro';
+import BlogPostTopBar from '../../components/BlogPostTopBar.astro';
+import { getLocalizedFaqs } from '../../data/faq';
+import { DEFAULT_LOCALE, getLocaleFromPathname } from '../../i18n';
+import SiteFaqSection from '../../components/SiteFaqSection.astro';
+import Icon from '../../components/icons/Icon.astro';
+import type { BlogBlock } from '../../data/blog';
+import { Badge } from '@/components/starwind/badge';
+import { Button } from '@/components/starwind/button';
+import { Prose } from '@/components/starwind/prose';
+import BlogPostCta from '../../components/BlogPostCta.astro';
+import { blogPostPath, normalizeInternalPath, ROUTES } from '../../utils/path';
+
+export function getStaticPaths() {
+  return getAllBlogSlugs().map((slug) => ({ params: { slug } }));
+}
+
+const locale = Astro.locals.locale ?? getLocaleFromPathname(Astro.url.pathname) ?? DEFAULT_LOCALE;
+const t = useTranslations(locale);
+
+const { slug } = Astro.params;
+const post = getBlogPost(slug!, locale);
+
+if (!post) {
+  return Astro.redirect('/warzone-blog/');
+}
+
+const postPath = `/warzone-blog/${post.slug}/`;
+const routeSeo = getPageSeoEntry(postPath);
+const breadcrumbs = [
+  { name: 'Home', path: '/' },
+  { name: 'Blog', path: '/warzone-blog/' },
+  { name: post.title, path: postPath },
+];
+
+const related = getRelatedBlogPosts(post.slug, 3, locale);
+const blogFaqs = getLocalizedFaqs(
+  Astro.locals.locale ?? getLocaleFromPathname(Astro.url.pathname) ?? DEFAULT_LOCALE,
+);
+const blogFaqSchemaItems = blogFaqs.map((item, index) => ({
+  num: String(index + 1).padStart(2, '0'),
+  q: item.q,
+  a: item.a.replace(/<[^>]+>/g, ''),
+}));
+
+function linkify(text: string): string {
+  return text
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_match, label: string, href: string) => {
+      const normalized = normalizeInternalPath(href);
+      return `<a href="${normalized}">${label}</a>`;
+    })
+    .replace(
+      /(https:\/\/(?:www\.)?(?:warzonecheats?\.net|cheatswarzone\.com|cheats-warzone\.com)[^\s.,;)]*)/g,
+      (_match, url: string) => {
+        const path =
+          url.replace(/^https:\/\/(?:www\.)?(?:warzonecheats?\.net|cheatswarzone\.com|cheats-warzone\.com)/, '') || '/';
+        const normalized = normalizeInternalPath(path);
+        // Relative href so temp *.pages.dev and cheats-warzone.com both work
+        return `<a href="${normalized}">cheats-warzone.com${normalized === '/' ? '' : normalized.replace(/\/$/, '')}</a>`;
+      },
+    );
+}
+
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+const published = parseBlogDate(post.date);
+---
+
+<BaseLayout
+  title={auditPages[postPath]?.title ?? routeSeo?.title ?? pageTitle(post.title)}
+  description={routeSeo?.description ?? post.desc}
+  ogType="article"
+  ogImage={post.image}
+  ogImageAlt={post.title}
+  articlePublishedTime={published}
+  articleModifiedTime={published}
+  jsonLd={[
+    articleSchema({
+      name: post.title,
+      description: post.desc,
+      url: postPath,
+      image: post.image,
+      datePublished: published,
+    }),
+    breadcrumbSchema(breadcrumbs),
+    faqPageSchema(blogFaqSchemaItems),
+  ]}
+>
+  <article class="py-8 md:py-12">
+    <div class="mx-auto max-w-6xl px-5">
+      <Breadcrumbs items={breadcrumbs} />
+
+      <BlogPostTopBar post={post} class="mt-6" />
+
+      <div class="blog-article__layout mt-4 grid gap-6 lg:grid-cols-[minmax(14rem,16.5rem)_minmax(0,1fr)] lg:items-start lg:gap-8 xl:grid-cols-[17.5rem_minmax(0,1fr)]">
+        <BlogSidebar post={post} related={related} class="order-2 lg:order-1" />
+
+        <div class="order-1 min-w-0 lg:order-2">
+          <figure class="blog-article__hero">
+            <ResponsiveImage
+              src={post.image}
+              alt={post.title.toLowerCase().includes('warzone cheats') ? post.title : `Warzone cheats: ${post.title}`}
+              width={1376}
+              height={768}
+              widths={[400, 640, 960, 1280]}
+              quality={BLOG_HERO_QUALITY}
+              loading="eager"
+              fetchPriority="high"
+              sizes="(min-width: 768px) 720px, 100vw"
+              class="w-full object-cover"
+            />
+          </figure>
+
+          <header class="blog-article__header">
+            <h1 class="blog-article__title">{post.title}</h1>
+            <p class="blog-article__lead">{post.desc}</p>
+            {
+              post.author && (
+                <p class="blog-article__byline">
+                  <Icon name="users" size={14} />
+                  {post.author}
+                </p>
+              )
+            }
+          </header>
+
+          <Prose class="blog-article__prose prose-headings:scroll-mt-24 max-w-none text-left">
+            {post.body.map((block: BlogBlock) => {
+              if (block.type === 'h2') {
+                const id = slugify(block.text);
+                return <h2 id={id}>{block.text}</h2>;
+              }
+              if (block.type === 'h3') {
+                const id = slugify(block.text);
+                return <h3 id={id}>{block.text}</h3>;
+              }
+              if (block.type === 'ul') {
+                return (
+                  <ul>
+                    {block.items.map((item) => (
+                      <li set:html={linkify(item)} />
+                    ))}
+                  </ul>
+                );
+              }
+              if (block.type === 'table') {
+                return (
+                  <div class="overflow-x-auto">
+                    <table>
+                      <thead>
+                        <tr>
+                          {block.headers.map((header) => (
+                            <th>{header}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {block.rows.map((row) => (
+                          <tr>
+                            {row.map((cell) => (
+                              <td set:html={linkify(cell)} />
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                );
+              }
+              if (block.type === 'cta') {
+                return (
+                  <BlogPostCta
+                    title={block.title}
+                    html={linkify(block.text)}
+                    href={resolveCheckoutHref(block.href)}
+                  />
+                );
+              }
+              return <p set:html={linkify(block.text)} />;
+            })}
+          </Prose>
+
+          <nav class="blog-article__actions" aria-label="Continue reading">
+            <Button as="a" href={WARZONE_BUY_URL} variant="primary" target="_self">
+              Buy now
+              <Icon name="arrowRight" size={17} />
+            </Button>
+            <Button as="a" href={ROUTES.products} variant="outline">
+              View products
+            </Button>
+            <Button as="a" href={ROUTES.blog} variant="outline">
+              Back to blog
+              <Icon name="arrowRight" size={17} />
+            </Button>
+          </nav>
+
+          {
+            related.length > 0 && (
+              <nav class="mt-10 border-t border-border pt-8" aria-labelledby="related-articles-heading">
+                <h2 id="related-articles-heading" class="text-xl font-bold">
+                  Related articles
+                </h2>
+                <ul class="mt-4 space-y-2">
+                  {related.map((item) => (
+                    <li>
+                      <a href={blogPostPath(item.slug)} class="text-primary hover:underline">
+                        {item.title}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+                <p class="mt-4 text-sm text-muted-foreground">
+                  <a href={ROUTES.products} class="text-primary hover:underline">View products</a>
+                  {' · '}
+                  <a href={ROUTES.blog} class="text-primary hover:underline">Back to blog</a>
+                </p>
+              </nav>
+            )
+          }
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <SiteFaqSection items={blogFaqs} titleId={`blog-faq-${post.slug}`} class="border-t border-border bg-muted/20" />
+</BaseLayout>

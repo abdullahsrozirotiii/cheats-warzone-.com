@@ -1,0 +1,130 @@
+---
+import '../styles/support-section.css';
+import { DEFAULT_LOCALE, getLocaleFromPathname, stripLocalePrefix, useTranslations } from '../i18n';
+import Breadcrumbs from './Breadcrumbs.astro';
+import Icon from './icons/Icon.astro';
+import type { IconName } from './icons/types';
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/starwind/card';
+import { Button } from '@/components/starwind/button';
+import { normalizeInternalPath } from '../utils/path';
+
+function channelHref(href: string): string {
+  if (href.startsWith('http') || href.startsWith('mailto:')) return href;
+  return normalizeInternalPath(href);
+}
+
+const locale = Astro.locals.locale ?? getLocaleFromPathname(Astro.url.pathname) ?? DEFAULT_LOCALE;
+const t = useTranslations(locale);
+
+interface BreadcrumbItem {
+  name: string;
+  path: string;
+}
+
+interface Props {
+  titleId?: string;
+  showTicketTips?: boolean;
+  breadcrumbs?: BreadcrumbItem[];
+  class?: string;
+}
+
+const {
+  titleId = 'support-title',
+  showTicketTips = false,
+  breadcrumbs,
+  class: className,
+} = Astro.props;
+const c = t.support;
+---
+
+<section
+  id="support"
+  class:list={['support-section border-y border-border bg-muted/20 py-16 md:py-24', className]}
+  aria-labelledby={titleId}
+>
+  <div class="support-section__inner mx-auto max-w-6xl px-5">
+    {
+      breadcrumbs?.length ? (
+        <div class="support-section__crumbs">
+          <Breadcrumbs items={breadcrumbs} />
+        </div>
+      ) : null
+    }
+    <header class="section-header section-header--wide support-section__header">
+      <p class="section-header__eyebrow">{c.eyebrow}</p>
+      <h1 id={titleId} class="section-header__title">{stripLocalePrefix(Astro.url.pathname) === '/warzone-support/' ? 'WarzoneCheats Support' : c.title}</h1>
+      {stripLocalePrefix(Astro.url.pathname) === '/warzone-support/' && <p class="mt-2 text-lg font-medium">Loader, Checkout &amp; Ricochet Help</p>}
+      <p class="section-header__subtitle">{c.subtitle}</p>
+    </header>
+
+    <ul class="support-section__cards">
+      {
+        c.channels.map((channel) => (
+          <li>
+            <Card class="support-section__card group flex h-full flex-col transition-[border-color,transform] hover:shadow-md">
+              <CardHeader class="space-y-3">
+                <div class="flex size-10 items-center justify-center rounded-lg bg-primary/10">
+                  <Icon name={channel.icon as IconName} size={22} class="support-section__icon" />
+                </div>
+                <CardTitle class="text-lg normal-case">{channel.title}</CardTitle>
+              </CardHeader>
+              <CardContent class="flex-1 pb-4">
+                <p class="text-sm leading-relaxed text-muted-foreground">{channel.desc}</p>
+              </CardContent>
+              <CardFooter class="mt-auto border-0 pt-0 pb-6">
+                <Button
+                  as="a"
+                  href={channelHref(channel.href)}
+                  variant="outline"
+                  class="support-section__cta w-full justify-center rounded-xl"
+                  target="_self"
+                >
+                  {channel.linkLabel}
+                  <Icon name="arrowRight" size={16} class="ms-1" />
+                </Button>
+              </CardFooter>
+            </Card>
+          </li>
+        ))
+      }
+    </ul>
+
+    {
+      showTicketTips && (
+        <div class="support-section__tips">
+          <h2 class="support-section__tips-title">{c.ticketTitle}</h2>
+          <ul class="support-section__tips-list">
+            {c.ticketItems.map((item) => (
+              <li class="support-section__tips-item">
+                <p class="support-section__tips-item-title">{item.title}</p>
+                <p class="support-section__tips-item-desc">{item.desc}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )
+    }
+
+    {
+      c.detailBlocks?.map((block) => (
+        <div class="support-section__block">
+          <h2 class="support-section__block-title">{block.title}</h2>
+          <ul class="support-section__block-list">
+            {block.items.map((item) => (
+              <li class="support-section__block-item">
+                <p class="support-section__block-item-title">{item.title}</p>
+                <p class="support-section__block-item-desc">{item.desc}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))
+    }
+  </div>
+</section>

@@ -1,0 +1,92 @@
+---
+import type { ProductAcquisition, ProductSlide } from '../../data/products';
+import { productAcquisitionStepIcons } from '../../data/sectionIcons';
+import Icon from '../icons/Icon.astro';
+
+interface Props {
+  images: ProductSlide[];
+  acquisition: ProductAcquisition;
+  productName: string;
+  subtitle?: string;
+}
+
+const { images, acquisition, productName, subtitle } = Astro.props;
+
+const calloutLabels = ['A', 'B', 'C', 'D', 'E', 'F'];
+const effectiveSubtitle =
+  subtitle ??
+  `Review the in-game layers above for ${productName}—detailed below is how each module behaves alongside direct post-checkout setup.`;
+---
+
+<section
+  id="product-experience"
+  class="product-experience py-14 md:py-16 lg:py-20"
+  aria-labelledby="product-experience-title"
+>
+  <div class="mx-auto max-w-6xl px-5 md:px-6">
+    <header class="product-experience__header">
+      <p class="product-experience__eyebrow">Experience</p>
+      <h2 id="product-experience-title" class="product-experience__title">
+        In the client · After you buy
+      </h2>
+      <p class="product-experience__subtitle">
+        {effectiveSubtitle}
+      </p>
+    </header>
+
+    <div class="product-experience__grid">
+      <div class="product-experience__column product-experience__column--preview">
+        <h3 class="product-experience__column-head" id="product-experience-preview-label">In-game layers</h3>
+        <ul class="product-experience__callouts list-none p-0" aria-labelledby="product-experience-preview-label">
+          {
+            images.map((slide, index) => (
+              <li class="product-experience__callout">
+                <span class="product-experience__callout-index" aria-hidden="true">
+                  {calloutLabels[index] ?? '·'}
+                </span>
+                <div class="product-experience__callout-body">
+                  <span class="product-experience__callout-tag">Layer {calloutLabels[index] ?? index + 1}</span>
+                  <div class="product-experience__callout-title">{slide.caption}</div>
+                  <div class="product-experience__callout-desc">{slide.captionDesc}</div>
+                </div>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      <div class="product-experience__divider" aria-hidden="true">
+        <span class="product-experience__divider-cap product-experience__divider-cap--top">Preview</span>
+        <span class="product-experience__divider-line" />
+        <span class="product-experience__divider-cap product-experience__divider-cap--bottom">Access</span>
+      </div>
+
+      <aside
+        class="product-experience__column product-experience__column--access"
+        aria-labelledby="product-experience-access-title"
+      >
+        <h3 class="product-experience__column-head" id="product-experience-access-title">
+          {acquisition.title}
+        </h3>
+        <div class="product-experience__access-body">
+          <ol class="product-experience__steps list-none p-0">
+            {
+              acquisition.steps.map((step, i) => (
+                <li class="product-experience__step">
+                  <span class="product-experience__step-marker">
+                    <Icon name={productAcquisitionStepIcons[i] ?? 'acqCheck'} size={16} />
+                  </span>
+                  <div class="product-experience__step-copy">
+                    <div class="product-experience__step-num">{step.num}</div>
+                    <div class="product-experience__step-title">{step.title}</div>
+                    <div class="product-experience__step-desc">{step.desc}</div>
+                  </div>
+                </li>
+              ))
+            }
+          </ol>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>

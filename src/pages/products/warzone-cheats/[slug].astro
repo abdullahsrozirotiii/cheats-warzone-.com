@@ -1,0 +1,78 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { getAllProductSlugs, getProductPage, productHub } from '../../../data/products';
+import { getPageSeoEntry } from '../../../config/pageSeo';
+import { pageTitle } from '../../../config/seo';
+import { breadcrumbSchema, productSchema } from '../../../utils/schema';
+import ProductDetail from '../../../components/ProductDetail.astro';
+import {
+  GALLERY_IMAGE_WIDTHS,
+  avifSrc,
+  defaultWebpSrc,
+  preferModernRasterSrc,
+  publicAssetExists,
+  responsiveAvifSrcSet,
+} from '../../../utils/responsiveImage';
+
+export function getStaticPaths() {
+  return getAllProductSlugs().map((slug) => ({ params: { slug } }));
+}
+
+const { slug } = Astro.params;
+import { DEFAULT_LOCALE, getLocaleFromPathname } from '../../../i18n';
+
+const locale = Astro.locals.locale ?? getLocaleFromPathname(Astro.url.pathname) ?? DEFAULT_LOCALE;
+const product = getProductPage(slug!, locale);
+
+if (!product) {
+  return Astro.redirect(productHub.path);
+}
+
+const pagePath = `${productHub.path}${product.slug}/`;
+const seoEntry = getPageSeoEntry(pagePath);
+const breadcrumbs = [
+  { name: 'Home', path: '/' },
+  { name: 'Products', path: productHub.path },
+  { name: product.title, path: pagePath },
+];
+const firstImage = product.images[0]?.src;
+const firstAvifSet = firstImage ? responsiveAvifSrcSet(firstImage, GALLERY_IMAGE_WIDTHS) : undefined;
+const galleryPreload = firstImage
+  ? firstAvifSet
+    ? avifSrc(firstImage, GALLERY_IMAGE_WIDTHS[0])
+    : defaultWebpSrc(firstImage, GALLERY_IMAGE_WIDTHS)
+  : null;
+const galleryPreloadType = firstAvifSet ? 'image/avif' : 'image/webp';
+const ogRaster = firstImage ? preferModernRasterSrc(firstImage, GALLERY_IMAGE_WIDTHS) : undefined;
+---
+
+<BaseLayout
+  title={seoEntry?.title ?? pageTitle(product.title)}
+  description={seoEntry?.description ?? product.desc}
+  ogImage={ogRaster}
+  jsonLd={[
+    productSchema({
+      name: product.title,
+      description: product.desc,
+      url: pagePath,
+      offerUrl: product.buyUrl,
+      image: ogRaster,
+      sku: product.slug,
+    }),
+    breadcrumbSchema(breadcrumbs),
+  ]}
+>
+  {
+    galleryPreload && publicAssetExists(galleryPreload) && (
+      <link
+        slot="head"
+        rel="preload"
+        as="image"
+        href={galleryPreload}
+        type={galleryPreloadType}
+        fetchpriority="high"
+      />
+    )
+  }
+  <ProductDetail product={product} breadcrumbs={breadcrumbs} />
+</BaseLayout>

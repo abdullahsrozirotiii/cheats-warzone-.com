@@ -1,0 +1,151 @@
+---
+import { DEFAULT_LOCALE, getLocaleFromPathname, useTranslations } from '../i18n';
+import { DISCORD_INVITE_URL } from '../config/site';
+import { ROUTES } from '../utils/path';
+import { compatibilityIcons, heroStatIcons, heroStatusPills } from '../data/sectionIcons';
+import Icon from './icons/Icon.astro';
+import { Button } from '@/components/starwind/button';
+import { Badge } from '@/components/starwind/badge';
+
+
+const locale = Astro.locals.locale ?? getLocaleFromPathname(Astro.url.pathname) ?? DEFAULT_LOCALE;
+const t = useTranslations(locale);
+const h = t.hero;
+
+const videoSrc = '/videos/hero.mp4';
+const heroMarqueePills = [
+  ...heroStatusPills,
+  ...t.compatibility.items.map((label, i) => ({
+    label,
+    icon: compatibilityIcons[i] ?? 'check',
+  })),
+];
+---
+
+<section
+  id="hero"
+  class="relative overflow-hidden border-b border-border bg-background dark:bg-neutral-950"
+  aria-labelledby="hero-title"
+>
+  <div class="pointer-events-none absolute inset-0 bg-white/85 dark:bg-black/55" aria-hidden="true" />
+  <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,var(--primary)_0%,transparent_55%)] opacity-10 dark:opacity-20" aria-hidden="true" />
+
+  <div class="relative mx-auto flex max-w-6xl flex-col justify-center px-5">
+    <div class="grid items-center gap-10 lg:grid-cols-2 lg:gap-14">
+      <div class="w-full max-w-xl space-y-6 text-left md:space-y-7 lg:max-w-2xl">
+        <Badge variant="secondary" class="uppercase tracking-wider">{h.eyebrow}</Badge>
+
+        <h1 id="hero-title" class="text-4xl font-bold uppercase leading-tight text-gray-900 md:text-5xl dark:text-white">
+          <span class="block text-gray-900 dark:text-white">{h.homeHeroH1}</span>
+        </h1>
+
+        <p class="max-w-xl text-sm leading-relaxed text-gray-700 md:text-base dark:text-gray-300">
+          {h.subtitle}
+        </p>
+
+        <div class="flex flex-wrap justify-start gap-3 sm:gap-4">
+          <Button
+            as="a"
+            href={ROUTES.products}
+            data-scroll-target="products"
+            variant="primary"
+            size="lg"
+            class="rounded-xl"
+          >
+            {h.ctaPrimary}
+            <Icon name="arrowRight" size={18} />
+          </Button>
+          <Button
+            as="a"
+            href={DISCORD_INVITE_URL}
+            variant="secondary"
+            size="lg"
+            class="rounded-xl"
+          >
+            <Icon name="messageCircle" size={18} />
+            {h.ctaDiscord}
+          </Button>
+        </div>
+      </div>
+
+      <div class="mx-auto flex w-full max-w-xl flex-col items-center gap-5 lg:mx-0 lg:max-w-none lg:items-end">
+        <div
+          id="hero-slider"
+          class="relative hidden w-full rounded-xl border border-neutral-200 bg-white p-2 shadow-sm lg:block dark:border-border dark:bg-card"
+        >
+          <div class="hero-video relative" data-hero-video>
+            <video
+              data-deferred-video={videoSrc}
+              data-deferred-min-width="1024"
+              class="aspect-[16/10] w-full rounded-lg bg-muted/30 object-cover"
+              width={1280}
+              height={800}
+              muted
+              loop
+              playsinline
+              preload="none"
+              poster="/images/posters/hero-poster.webp"
+              aria-label="Call of Duty Warzone product preview"
+            >
+              <track kind="captions" srclang="en" label="English" src="/videos/hero-captions.vtt" />
+            </video>
+            <button
+              type="button"
+              class="hero-video__toggle absolute left-1/2 top-1/2 z-10 flex size-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/25 bg-black/45 text-white shadow-lg backdrop-blur-sm transition hover:bg-black/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
+              data-hero-video-toggle
+              aria-label="Play video"
+              aria-pressed="false"
+            >
+              <svg data-hero-video-icon="play" class="size-7 translate-x-0.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+              <svg data-hero-video-icon="pause" class="hidden size-7" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M6 5h4v14H6V5zm8 0h4v14h-4V5z" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="grid w-full grid-cols-2 gap-2.5 sm:gap-3 md:grid-cols-4 lg:grid-cols-2">
+          {h.metrics.map((m, i) => (
+            <div class="flex min-w-0 items-center gap-3 rounded-xl border border-neutral-200 bg-white/95 px-3 py-3 shadow-sm shadow-black/5 transition-colors hover:border-primary/40 dark:border-border/80 dark:bg-card/70 dark:shadow-black/10">
+              <span
+                class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary ring-1 ring-inset ring-primary/25"
+                aria-hidden="true"
+              >
+                <Icon name={heroStatIcons[i] ?? 'check'} size={18} />
+              </span>
+              <div class="min-w-0">
+                <p class="font-[family-name:var(--font-heading)] text-base font-bold leading-none tracking-tight text-foreground">{m.strong}</p>
+                <p class="mt-1 text-xs leading-tight text-neutral-700 dark:text-muted-foreground">{m.label}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-status-marquee relative mt-10 md:mt-12 lg:mt-14" aria-label="Features and platform support">
+      <div class="pointer-events-none absolute inset-y-0 left-0 z-10 w-12 bg-gradient-to-r from-background to-transparent dark:from-black/80" aria-hidden="true" />
+      <div class="pointer-events-none absolute inset-y-0 right-0 z-10 w-12 bg-gradient-to-l from-background to-transparent dark:from-black/80" aria-hidden="true" />
+      <div class="hero-status-marquee-track flex w-max gap-2">
+        {[...heroMarqueePills, ...heroMarqueePills].map((pill) => (
+          <Badge variant="outline" class="group/badge shrink-0 gap-1 border-neutral-300 bg-white/85 py-0.5 pl-1.5 pr-2.5 text-xs text-neutral-900 whitespace-nowrap dark:border-white/35 dark:bg-black/35 dark:text-white">
+            <Icon name={pill.icon} size={13} class="text-neutral-800 dark:text-white" />
+            {pill.label}
+          </Badge>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  const loadHeroMedia = () =>
+    import('../scripts/deferred-media').then(({ initDeferredVideos }) => initDeferredVideos());
+
+  if (typeof window.requestIdleCallback === 'function') {
+    window.requestIdleCallback(loadHeroMedia, { timeout: 3500 });
+  } else {
+    window.setTimeout(loadHeroMedia, 200);
+  }
+</script>

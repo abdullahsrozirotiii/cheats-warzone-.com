@@ -1,0 +1,42 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { DEFAULT_LOCALE, getLocaleFromPathname, useTranslations } from '../i18n';
+import { resolvePageSeo } from '../config/seo';
+
+const locale = Astro.locals.locale ?? getLocaleFromPathname(Astro.url.pathname) ?? DEFAULT_LOCALE;
+const t = useTranslations(locale);
+const seo = resolvePageSeo('/warzone-about/');
+import LegalPage from '../components/LegalPage.astro';
+import { breadcrumbSchema, organizationSchema, webPageSchema } from '../utils/schema';
+
+const content = t.legalPages.about;
+---
+
+<BaseLayout
+  title={seo.title}
+  description={seo.description}
+  jsonLd={[
+    organizationSchema(),
+    webPageSchema({
+      name: content.title,
+      description: content.description,
+      url: '/warzone-about/',
+    }),
+    breadcrumbSchema([
+      { name: 'Home', path: '/' },
+      { name: 'About', path: '/warzone-about/' },
+    ]),
+  ]}
+>
+  <LegalPage
+    title={content.title}
+    description={content.description}
+    breadcrumbLabel="About"
+    image={{
+      src: '/images/playerproduct.jpg',
+      alt: 'WarzoneCheats – Warzone cheats tactical overlay setup guide',
+      caption: 'Warzone cheats testing environment'
+    }}
+    sections={content.sections}
+  />
+</BaseLayout>

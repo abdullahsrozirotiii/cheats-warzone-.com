@@ -1,0 +1,468 @@
+﻿---
+import '../../styles/forum.css';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import Icon from '../../components/icons/Icon.astro';
+import SiteLogo from '../../components/SiteLogo.astro';
+import { forumCategories, getLocalizedForumPosts } from '../../data/forum';
+import { blogPosts, getBlogPostTimestamp } from '../../data/blog';
+import { resolvePageSeo } from '../../config/seo';
+import { breadcrumbSchema, collectionPageSchema } from '../../utils/schema';
+import { DEFAULT_LOCALE, getLocaleFromPathname, useTranslations } from '../../i18n';
+import { withLocalePrefix } from '../../i18n/utils';
+
+const locale = Astro.locals.locale ?? getLocaleFromPathname(Astro.url.pathname) ?? DEFAULT_LOCALE;
+const t = useTranslations(locale);
+const forumPosts = getLocalizedForumPosts(locale);
+const seo = resolvePageSeo('/warzone-forum/');
+const breadcrumbs = [
+  { name: t.forum.home, path: withLocalePrefix('/', locale) },
+  { name: t.forum.forum, path: '/warzone-forum/' },
+];
+const categoryKey = (name: string) => name.toLowerCase().replace(/[^a-z0-9]/g, '');
+const sourceTimestamp = (path?: string) => {
+  const slug = path?.split('/').filter(Boolean).at(-1);
+  const article = blogPosts.find((item) => item.slug === slug);
+  return article ? getBlogPostTimestamp(article.date) : 0;
+};
+---
+
+<BaseLayout title={seo.title} description={seo.description} jsonLd={[
+  collectionPageSchema({ name: 'WarzoneCheats Community Forum', description: seo.description, url: '/warzone-forum/' }),
+  breadcrumbSchema(breadcrumbs),
+]}>
+  <section class="forum-page py-8 md:py-12" data-forum-root data-forum-messages={JSON.stringify({ discussion: 'discussion', discussions: 'discussions', showing: 'Showing {from}–{to} of {total}', zero: '0 discussions', page: 'Page {page}', noResults: 'No discussions match “{query}”', allTopics: 'All topics' })}>
+    <div class="mx-auto max-w-6xl px-5">
+      <Breadcrumbs items={breadcrumbs} />
+      <header class="forum-hero">
+        <div>
+          <p class="section-header__eyebrow">{t.forum.eyebrow}</p>
+          <h1>{t.forum.title}</h1>
+          <p class="forum-hero__copy">{t.forum.subtitle}</p>
+        </div>
+        <a class="forum-create" href={withLocalePrefix('/warzone-blog/', locale)}><Icon name="messageCircle" size={17} /> {t.forum.exploreGuides}</a>
+      </header>
+
+      <div class="forum-layout">
+        <main class="forum-main" aria-label="Community posts">
+          <div class="forum-toolbar">
+            <div class="forum-sort" role="group" aria-label="Post sorting">
+              <button class="is-active" type="button" data-forum-sort="popular" aria-pressed="true">{t.forum.sortPopular}</button>
+              <button type="button" data-forum-sort="latest" aria-pressed="false">{t.forum.sortLatest}</button>
+              <button type="button" data-forum-sort="top" aria-pressed="false">{t.forum.sortDiscussed}</button>
+            </div>
+            <div class="forum-search" data-forum-search-bar>
+              <div class="forum-search__scope" data-forum-scope>
+                <button
+                  type="button"
+                  class="forum-search__scope-btn"
+                  data-forum-scope-trigger
+                  aria-haspopup="listbox"
+                  aria-expanded="false"
+                  aria-controls="forum-scope-menu"
+                  aria-label="Filter search by topic"
+                >
+                  <span data-forum-scope-label>All topics</span>
+                  <Icon name="chevronDown" size={14} class="forum-search__scope-chevron" />
+                </button>
+                <ul
+                  id="forum-scope-menu"
+                  class="forum-search__menu"
+                  role="listbox"
+                  aria-label="Topics"
+                  data-forum-scope-menu
+                  hidden
+                >
+                  <li role="option" aria-selected="true" tabindex="-1" data-forum-scope-option data-value="all">All topics</li>
+                  {forumCategories.map((category) => (
+                    <li
+                      role="option"
+                      aria-selected="false"
+                      tabindex="-1"
+                      data-forum-scope-option
+                      data-value={categoryKey(category.name)}
+                    >
+                      {category.name}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <span class="forum-search__divider" aria-hidden="true"></span>
+              <Icon name="search" size={16} class="forum-search__icon" />
+              <input
+                type="search"
+                placeholder="Search discussions"
+                aria-label="Search discussions"
+                aria-autocomplete="list"
+                aria-controls="forum-search-suggestions"
+                aria-expanded="false"
+                autocomplete="off"
+                data-forum-search
+              />
+              <span class="sr-only" data-forum-count>{forumPosts.length} discussions</span>
+              <div
+                id="forum-search-suggestions"
+                class="forum-search__suggestions"
+                role="listbox"
+                aria-label="Matching discussions"
+                data-forum-suggestions
+                hidden
+              ></div>
+            </div>
+          </div>
+
+          <div class="forum-category-filters" role="group" aria-label="Filter discussions by topic">
+            <button type="button" class="is-active" data-forum-filter="all" aria-pressed="true"><Icon name="layers" size={14} /> All topics</button>
+            {forumCategories.map((category) => (
+              <button type="button" data-forum-filter={categoryKey(category.name)} aria-pressed="false"><Icon name={category.icon} size={14} /> {category.name}</button>
+            ))}
+          </div>
+          <p class="forum-results-count" data-forum-visible-count>{forumPosts.length} guide discussions</p>
+
+          <div class="forum-post-list" aria-live="polite">
+            {forumPosts.map((post, index) => (
+              <article class="forum-post-card" data-forum-card data-post-slug={post.slug} data-upvotes={post.upvotes} data-category={categoryKey(post.category)} data-comments={post.commentsCount} data-published={sourceTimestamp(post.sourcePath)} data-order={index}>
+                <div class="forum-vote" aria-label="Discussion voting">
+                  <button class="forum-vote__up" type="button" data-vote-up data-vote-remove-label="Remove your upvote" aria-label="Upvote this discussion"><Icon name="chevronDown" size={16} /></button>
+                  <strong data-vote-count>{post.upvotes}</strong>
+                  <button type="button" disabled aria-label="Downvoting is unavailable"><Icon name="chevronDown" size={16} /></button>
+                </div>
+                <div class="forum-post-card__body">
+                  <div class="forum-post-meta">
+                    <span class={`forum-community-avatar tone-${post.categoryTone}`}><Icon name="users" size={15} /></span>
+                    <a href="#communities" class="forum-community-name">d/{post.category.toLowerCase().replaceAll(' ', '')}</a>
+                    <span>Â·</span><span><Icon name="userRound" size={13} /> WarzoneCheats guide team</span><span>Guide-based Q&amp;A</span>
+                  </div>
+                  <a class="forum-post-title" href={`/warzone-forum/${post.slug}/`}>{post.title}</a>
+                  <p class="forum-post-excerpt">{post.excerpt}</p>
+                  {post.sourceTitle && <p class="forum-source">From the guide: <a href={post.sourcePath}>{post.sourceTitle}</a></p>}
+                  <div class="forum-post-actions">
+                    {post.flair && <span class={`forum-flair tone-${post.categoryTone}`}>{post.flair}</span>}
+                    <a href={`/warzone-forum/${post.slug}/`}><Icon name="messageCircle" size={15} /> {post.commentsCount} comments</a>
+                    <a href={`/warzone-forum/${post.slug}/`}><Icon name="arrowRight" size={15} /> Read discussion</a>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+          <p class="forum-empty" data-forum-empty hidden>No discussions match. Try another search or topic.</p>
+          <nav class="forum-pagination" aria-label="Discussion pages" data-forum-pagination hidden>
+            <button type="button" data-page-previous aria-label="Previous page">Previous</button>
+            <div class="forum-pagination__pages" data-page-buttons></div>
+            <button type="button" data-page-next aria-label="Next page">Next</button>
+            <span class="forum-pagination__status" data-page-status aria-live="polite"></span>
+          </nav>
+        </main>
+
+        <aside class="forum-sidebar">
+          <section class="forum-side-card forum-about" id="community-guidelines">
+            <div class="forum-side-card__banner"></div>
+            <div class="forum-about__content">
+              <div class="forum-about__title"><span class="forum-community-avatar forum-community-avatar--brand"><SiteLogo width={34} height={34} loading="lazy" alt="Forums – cheatswarzone" /></span><h2>Forums: WarzoneCheats Community</h2></div>
+              <p>A home for Warzone players to trade ideas, learn together, and celebrate the game.</p>
+              <div class="forum-stats"><span><b>{forumPosts.length}</b> guide discussions</span><span><b>{forumCategories.length}</b> topics</span></div>
+              <a class="forum-join" href="/warzone-blog/">Explore all guides</a>
+            </div>
+          </section>
+          <section class="forum-side-card" id="communities">
+            <h2 class="forum-side-heading">Communities</h2>
+            <ul class="forum-community-list">
+              {forumCategories.map((category, index) => (
+                <li><a href={`/warzone-forum/?category=${categoryKey(category.name)}`}><span class={`forum-community-avatar tone-${category.tone}`} aria-hidden="true"><Icon name={category.icon} size={15} /></span><span><b>{category.name}</b><small>Browse related Q&amp;A</small></span><Icon name="chevronRight" size={15} /></a></li>
+              ))}
+            </ul>
+            <a class="forum-text-link" href="#communities">Browse all communities <Icon name="arrowRight" size={14} /></a>
+          </section>
+          <section class="forum-side-card forum-rules">
+            <h2 class="forum-side-heading">Community guidelines</h2>
+            <ol><li>Keep it friendly and constructive</li><li>Stay on topic and add context</li><li>Mark spoilers and sensitive content</li></ol>
+            <a href="#community-guidelines">Read the full guidelines <Icon name="arrowRight" size={14} /></a>
+          </section>
+          <p class="forum-sidebar-foot">About Â· Guidelines Â· Privacy Â· Terms<br />Â© {new Date().getFullYear()} WarzoneCheats Community</p>
+        </aside>
+      </div>
+    </div>
+  </section>
+  <script is:inline>
+    const cards = [...document.querySelectorAll('[data-forum-card]')];
+    const sortButtons = [...document.querySelectorAll('[data-forum-sort]')];
+    const filterButtons = [...document.querySelectorAll('[data-forum-filter]')];
+    const searchBar = document.querySelector('[data-forum-search-bar]');
+    const searchInput = document.querySelector('[data-forum-search]');
+    const suggestionsEl = document.querySelector('[data-forum-suggestions]');
+    const scopeRoot = document.querySelector('[data-forum-scope]');
+    const scopeTrigger = document.querySelector('[data-forum-scope-trigger]');
+    const scopeMenu = document.querySelector('[data-forum-scope-menu]');
+    const scopeLabel = document.querySelector('[data-forum-scope-label]');
+    const scopeOptions = [...document.querySelectorAll('[data-forum-scope-option]')];
+    const list = document.querySelector('.forum-post-list');
+    const pagination = document.querySelector('[data-forum-pagination]');
+    const pageButtons = document.querySelector('[data-page-buttons]');
+    const pageStatus = document.querySelector('[data-page-status]');
+    const countStatus = document.querySelector('[data-forum-count]');
+    const visibleCount = document.querySelector('[data-forum-visible-count]');
+    const emptyState = document.querySelector('[data-forum-empty]');
+    const previousButton = document.querySelector('[data-page-previous]');
+    const nextButton = document.querySelector('[data-page-next]');
+    const messages = JSON.parse(document.querySelector('[data-forum-root]').dataset.forumMessages);
+    // Search the localized DOM so suggestions match the visible language.
+    const forumSearchIndex = cards.map((card) => ({
+      title: card.querySelector('.forum-post-title')?.textContent?.trim() ?? '',
+      excerpt: card.querySelector('.forum-post-excerpt')?.textContent?.trim() ?? '',
+      category: scopeOptions.find(option => option.dataset.value === card.dataset.category)?.textContent?.trim() ?? '',
+      categoryKey: card.dataset.category,
+      href: card.querySelector('.forum-post-title')?.getAttribute('href') ?? '',
+    }));
+    const discussionCount = count => `${count} ${count === 1 ? messages.discussion : messages.discussions}`;
+    const pageSize = 20;
+    let currentPage = 1;
+    let activeFilter = new URLSearchParams(window.location.search).get('category') ?? 'all';
+    let activeSuggestion = -1;
+
+    function setScopeOpen(open) {
+      if (!scopeTrigger || !scopeMenu || !scopeRoot) return;
+      scopeMenu.hidden = !open;
+      scopeTrigger.setAttribute('aria-expanded', String(open));
+      scopeRoot.classList.toggle('is-open', open);
+      if (open) setSuggestionsOpen(false);
+    }
+
+    function setSuggestionsOpen(open) {
+      if (!suggestionsEl || !searchInput) return;
+      suggestionsEl.hidden = !open;
+      searchInput.setAttribute('aria-expanded', String(open));
+      searchBar?.classList.toggle('has-suggestions', open);
+      if (!open) activeSuggestion = -1;
+    }
+
+    function syncFilterUi(nextFilter) {
+      activeFilter = nextFilter;
+      scopeOptions.forEach((option) => {
+        const selected = (option.dataset.value ?? 'all') === nextFilter;
+        option.setAttribute('aria-selected', String(selected));
+        option.classList.toggle('is-active', selected);
+        if (selected && scopeLabel) scopeLabel.textContent = option.textContent?.trim() || messages.allTopics;
+      });
+      filterButtons.forEach((item) => {
+        const active = (item.dataset.forumFilter ?? 'all') === nextFilter;
+        item.classList.toggle('is-active', active);
+        item.setAttribute('aria-pressed', String(active));
+      });
+    }
+
+    function escapeHtml(value) {
+      return value
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;');
+    }
+
+    function highlightMatch(text, query) {
+      const safe = escapeHtml(text);
+      if (!query) return safe;
+      const idx = text.toLocaleLowerCase().indexOf(query);
+      if (idx < 0) return safe;
+      const before = escapeHtml(text.slice(0, idx));
+      const match = escapeHtml(text.slice(idx, idx + query.length));
+      const after = escapeHtml(text.slice(idx + query.length));
+      return `${before}<mark>${match}</mark>${after}`;
+    }
+
+    function matchingSuggestions(query) {
+      const q = query.trim().toLocaleLowerCase();
+      if (q.length < 1) return [];
+      return forumSearchIndex
+        .filter((item) => {
+          const inTopic = activeFilter === 'all' || item.categoryKey === activeFilter;
+          if (!inTopic) return false;
+          const haystack = `${item.title} ${item.excerpt} ${item.category}`.toLocaleLowerCase();
+          return haystack.includes(q);
+        })
+        .slice(0, 6);
+    }
+
+    function renderSuggestions() {
+      if (!suggestionsEl || !searchInput) return;
+      const query = searchInput.value.trim();
+      const matches = matchingSuggestions(query);
+      if (!matches.length) {
+        if (query.length > 0) {
+          suggestionsEl.innerHTML = `<p class="forum-search__suggestions-empty">${messages.noResults.replace('{query}', escapeHtml(query))}</p>`;
+          setSuggestionsOpen(true);
+        } else {
+          suggestionsEl.innerHTML = '';
+          setSuggestionsOpen(false);
+        }
+        return;
+      }
+
+      suggestionsEl.innerHTML = matches
+        .map(
+          (item, index) => `
+        <a
+          class="forum-search__suggestion"
+          role="option"
+          href="${item.href}"
+          data-suggestion-index="${index}"
+          aria-selected="${index === activeSuggestion ? 'true' : 'false'}"
+        >
+          <span class="forum-search__suggestion-cat">${escapeHtml(item.category)}</span>
+          <span class="forum-search__suggestion-title">${highlightMatch(item.title, query.toLocaleLowerCase())}</span>
+          <span class="forum-search__suggestion-excerpt">${escapeHtml(item.excerpt)}</span>
+        </a>`,
+        )
+        .join('');
+      setSuggestionsOpen(true);
+    }
+
+    function updateForum() {
+      const sort = sortButtons.find((button) => button.getAttribute('aria-pressed') === 'true')?.dataset.forumSort ?? 'popular';
+      const query = searchInput?.value.trim().toLocaleLowerCase() ?? '';
+      const ordered = [...cards].sort((a, b) => {
+        if (sort === 'latest') return Number(b.dataset.published) - Number(a.dataset.published);
+        if (sort === 'top') return Number(b.dataset.comments) - Number(a.dataset.comments);
+        return Number(a.dataset.order) - Number(b.dataset.order);
+      });
+      const matching = ordered.filter((card) => {
+        const matchesCategory = activeFilter === 'all' || card.dataset.category === activeFilter;
+        return matchesCategory && (!query || card.textContent?.toLocaleLowerCase().includes(query));
+      });
+      const pageCount = Math.max(1, Math.ceil(matching.length / pageSize));
+      currentPage = Math.min(currentPage, pageCount);
+      const firstVisible = (currentPage - 1) * pageSize;
+      const visibleCards = new Set(matching.slice(firstVisible, firstVisible + pageSize));
+
+      ordered.forEach((card) => {
+        card.hidden = !visibleCards.has(card);
+        list?.append(card);
+      });
+
+      if (countStatus) countStatus.textContent = discussionCount(matching.length);
+      if (visibleCount) visibleCount.textContent = discussionCount(matching.length);
+      if (emptyState) emptyState.hidden = matching.length > 0;
+      if (pagination) pagination.hidden = matching.length <= pageSize;
+      if (pageStatus) pageStatus.textContent = matching.length
+        ? messages.showing.replace('{from}', firstVisible + 1).replace('{to}', Math.min(firstVisible + pageSize, matching.length)).replace('{total}', matching.length)
+        : messages.zero;
+      if (previousButton) previousButton.disabled = currentPage <= 1;
+      if (nextButton) nextButton.disabled = currentPage >= pageCount;
+      if (pageButtons) {
+        pageButtons.replaceChildren(...Array.from({ length: pageCount }, (_, index) => {
+          const button = document.createElement('button');
+          const page = index + 1;
+          button.type = 'button';
+          button.textContent = String(page);
+          button.setAttribute('aria-label', messages.page.replace('{page}', page));
+          if (page === currentPage) button.setAttribute('aria-current', 'page');
+          button.addEventListener('click', () => {
+            currentPage = page;
+            updateForum();
+          });
+          return button;
+        }));
+      }
+    }
+
+    sortButtons.forEach((button) => button.addEventListener('click', () => {
+      sortButtons.forEach((item) => {
+        const active = item === button;
+        item.classList.toggle('is-active', active);
+        item.setAttribute('aria-pressed', String(active));
+      });
+      currentPage = 1;
+      updateForum();
+      renderSuggestions();
+    }));
+
+    filterButtons.forEach((button) => button.addEventListener('click', () => {
+      syncFilterUi(button.dataset.forumFilter ?? 'all');
+      currentPage = 1;
+      updateForum();
+      renderSuggestions();
+    }));
+
+    scopeTrigger?.addEventListener('click', (event) => {
+      event.stopPropagation();
+      setScopeOpen(scopeMenu?.hidden !== false);
+    });
+
+    scopeOptions.forEach((option) => {
+      option.addEventListener('click', (event) => {
+        event.stopPropagation();
+        syncFilterUi(option.dataset.value ?? 'all');
+        setScopeOpen(false);
+        currentPage = 1;
+        updateForum();
+        renderSuggestions();
+      });
+    });
+
+    document.addEventListener('click', (event) => {
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+      if (!scopeRoot?.contains(target)) setScopeOpen(false);
+      if (!searchBar?.contains(target)) setSuggestionsOpen(false);
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        setScopeOpen(false);
+        setSuggestionsOpen(false);
+      }
+    });
+
+    searchInput?.addEventListener('input', () => {
+      currentPage = 1;
+      activeSuggestion = -1;
+      updateForum();
+      renderSuggestions();
+    });
+
+    searchInput?.addEventListener('focus', () => {
+      if ((searchInput.value.trim().length ?? 0) > 0) renderSuggestions();
+    });
+
+    searchInput?.addEventListener('keydown', (event) => {
+      if (!suggestionsEl || suggestionsEl.hidden) return;
+      const items = [...suggestionsEl.querySelectorAll('[data-suggestion-index]')];
+      if (!items.length) return;
+
+      if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        activeSuggestion = (activeSuggestion + 1) % items.length;
+        items.forEach((el, i) => el.setAttribute('aria-selected', String(i === activeSuggestion)));
+        items[activeSuggestion]?.scrollIntoView({ block: 'nearest' });
+      } else if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        activeSuggestion = (activeSuggestion - 1 + items.length) % items.length;
+        items.forEach((el, i) => el.setAttribute('aria-selected', String(i === activeSuggestion)));
+        items[activeSuggestion]?.scrollIntoView({ block: 'nearest' });
+      } else if (event.key === 'Enter' && activeSuggestion >= 0) {
+        event.preventDefault();
+        const link = items[activeSuggestion];
+        if (link instanceof HTMLAnchorElement) window.location.href = link.href;
+      }
+    });
+
+    previousButton?.addEventListener('click', () => {
+      currentPage = Math.max(1, currentPage - 1);
+      updateForum();
+    });
+    nextButton?.addEventListener('click', () => {
+      currentPage += 1;
+      updateForum();
+    });
+
+    if (!filterButtons.some((button) => button.dataset.forumFilter === activeFilter)) {
+      activeFilter = 'all';
+    }
+    syncFilterUi(activeFilter);
+    updateForum();
+  </script>
+  <script>
+    import { initForumVotes } from '../../scripts/forum-votes.ts';
+    initForumVotes();
+  </script>
+</BaseLayout>
+

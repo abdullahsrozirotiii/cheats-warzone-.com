@@ -1,0 +1,174 @@
+---
+import type { ProductSlide } from '../data/products';
+import { Badge } from '@/components/starwind/badge';
+import {
+  GALLERY_IMAGE_SIZES,
+  GALLERY_IMAGE_WIDTHS,
+  THUMB_IMAGE_SIZES,
+  THUMB_IMAGE_WIDTHS,
+} from '../utils/responsiveImage';
+import { buildOptimizedSources } from '../utils/optimizedImage';
+
+interface Props {
+  images: ProductSlide[];
+  id?: string;
+}
+
+const { images, id = 'product-screenshots' } = Astro.props;
+const hasThumbs = images.length > 1;
+
+const slides = await Promise.all(
+  images.map(async (img) => {
+    const main = await buildOptimizedSources(img.src, GALLERY_IMAGE_WIDTHS);
+    const thumb = await buildOptimizedSources(img.src, THUMB_IMAGE_WIDTHS);
+    return { ...img, main, thumb };
+  }),
+);
+
+const first = slides[0];
+---
+
+<div
+  class:list={['product-gallery', !hasThumbs && 'product-gallery--single']}
+  id={id}
+  data-product-gallery
+>
+  <div class="product-gallery__frame">
+    <div class="product-gallery__main">
+      {
+        first && (
+          <picture>
+            {first.main.avifSrcSet && (
+              <source
+                type="image/avif"
+                srcset={first.main.avifSrcSet}
+                sizes={GALLERY_IMAGE_SIZES}
+                data-gallery-avif
+              />
+            )}
+            {first.main.webpSrcSet && (
+              <source
+                type="image/webp"
+                srcset={first.main.webpSrcSet}
+                sizes={GALLERY_IMAGE_SIZES}
+                data-gallery-webp
+              />
+            )}
+            <img
+              src={first.main.imgSrc}
+              alt={first.alt}
+              width={1280}
+              height={720}
+              loading="eager"
+              fetchpriority="high"
+              decoding="async"
+              sizes={GALLERY_IMAGE_SIZES}
+              class="product-gallery__image"
+            />
+          </picture>
+        )
+      }
+    </div>
+    <Badge
+      tone="neutral"
+      appearance="frosted"
+      size="sm"
+      class="pointer-events-none absolute bottom-3 left-3 z-10 shadow-sm"
+    >
+      Product preview
+    </Badge>
+  </div>
+
+  {
+    hasThumbs && (
+      <div class="product-gallery__thumbs" role="tablist" aria-label="Product images">
+        {slides.map((img, i) => (
+          <button
+            type="button"
+            class:list={['product-gallery__thumb', i === 0 && 'is-active']}
+            role="tab"
+            aria-selected={i === 0 ? 'true' : 'false'}
+            aria-label={`Image ${i + 1}`}
+            data-product-gallery-thumb
+            data-index={i}
+            data-alt={img.alt}
+            data-webp={img.main.webpSrcSet ?? ''}
+            data-avif={img.main.avifSrcSet ?? ''}
+            data-main={img.main.imgSrc}
+          >
+            <picture>
+              {img.thumb.avifSrcSet && (
+                <source
+                  type="image/avif"
+                  srcset={img.thumb.avifSrcSet}
+                  sizes={THUMB_IMAGE_SIZES}
+                />
+              )}
+              {img.thumb.webpSrcSet && (
+                <source
+                  type="image/webp"
+                  srcset={img.thumb.webpSrcSet}
+                  sizes={THUMB_IMAGE_SIZES}
+                />
+              )}
+              <img
+                src={img.thumb.imgSrc}
+                alt={img.alt}
+                width={320}
+                height={180}
+                loading={i === 0 ? 'eager' : 'lazy'}
+                decoding="async"
+              />
+            </picture>
+          </button>
+        ))}
+      </div>
+    )
+  }
+</div>
+
+<script>
+  const initProductGalleries = () => {
+    document.querySelectorAll('[data-product-gallery]').forEach((root) => {
+      if (root.hasAttribute('data-gallery-bound')) return;
+      root.setAttribute('data-gallery-bound', '');
+
+      const main = root.querySelector<HTMLImageElement>('.product-gallery__image');
+      const webpSource = root.querySelector<HTMLSourceElement>('[data-gallery-webp]');
+      const avifSource = root.querySelector<HTMLSourceElement>('[data-gallery-avif]');
+      const thumbs = root.querySelectorAll<HTMLButtonElement>('[data-product-gallery-thumb]');
+      if (!main || !thumbs.length) return;
+
+      thumbs.forEach((thumb) => {
+        thumb.addEventListener('click', () => {
+          const mainSrc = thumb.getAttribute('data-main');
+          const alt = thumb.getAttribute('data-alt');
+          const webp = thumb.getAttribute('data-webp');
+          const avif = thumb.getAttribute('data-avif');
+
+          if (webpSource && webp) webpSource.srcset = webp;
+          if (avifSource) {
+            if (avif) {
+              avifSource.srcset = avif;
+              avifSource.removeAttribute('disabled');
+            } else {
+              avifSource.removeAttribute('srcset');
+            }
+          }
+          if (mainSrc) main.src = mainSrc;
+          main.removeAttribute('srcset');
+          if (alt) main.alt = alt;
+
+          thumbs.forEach((t) => {
+            const active = t === thumb;
+            t.classList.toggle('is-active', active);
+            t.setAttribute('aria-selected', active ? 'true' : 'false');
+          });
+        });
+      });
+    });
+  };
+
+  initProductGalleries();
+  document.addEventListener('astro:after-swap', initProductGalleries);
+</script>

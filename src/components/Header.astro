@@ -1,0 +1,100 @@
+---
+import { DEFAULT_LOCALE, getLocaleFromPathname, useTranslations } from '../i18n';
+import { WARZONE_BUY_URL } from '../config/checkout';
+import { Button } from '@/components/starwind/button';
+import Icon from './icons/Icon.astro';
+import SlideRevealButton from './SlideRevealButton.astro';
+import LanguageMenu from './LanguageMenu.astro';
+import AnimatedThemeSwitch from './AnimatedThemeSwitch.astro';
+import BrandMark from './BrandMark.astro';
+
+
+import type { IconName } from './icons/types';
+
+
+const locale = Astro.locals.locale ?? getLocaleFromPathname(Astro.url.pathname) ?? DEFAULT_LOCALE;
+const t = useTranslations(locale);
+const navIcons: Record<string, IconName> = {
+  Home: 'navHome',
+  Products: 'navProducts',
+  Blog: 'navBlog',
+  Forum: 'messageCircle',
+  Reviews: 'messageCircle',
+  FAQ: 'navFaq',
+  Support: 'navSupport',
+};
+
+const purchaseUrl = WARZONE_BUY_URL;
+---
+
+<header class="pointer-events-none fixed inset-x-0 top-0 z-50">
+  <div class="flex justify-center px-3 pt-3 sm:px-4 sm:pt-4" data-floating-nav>
+    <div
+      class="pointer-events-auto relative flex h-14 w-full max-w-6xl items-center justify-between gap-3 rounded-2xl border border-border/40 bg-background/35 px-4 text-foreground shadow-md shadow-black/5 backdrop-blur-2xl supports-[backdrop-filter]:bg-background/25 dark:border-white/10 dark:bg-background/20 dark:shadow-black/25 sm:px-5 lg:h-[3.75rem]"
+    >
+    <BrandMark class="relative z-10 min-w-0 max-w-[42%] sm:max-w-none" logoHeight={34} loading="eager" style="--brand-mark-h: 2.125rem" />
+
+    <nav class="pointer-events-none absolute inset-x-0 hidden items-center justify-center gap-3 px-28 lg:flex" aria-label="Primary">
+      <div class="pointer-events-auto flex min-w-0 items-center gap-3">
+        {t.nav.map((link) => (
+          <a
+            href={link.href}
+            class="nav-link inline-flex items-center whitespace-nowrap text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
+            data-nav-link
+            {...(link.scrollTarget ? { 'data-scroll-target': link.scrollTarget } : {})}
+          >
+            {link.label}
+          </a>
+        ))}
+      </div>
+    </nav>
+
+    <div class="relative z-10 ml-auto flex shrink-0 items-center gap-2 sm:gap-2.5">
+      <div class="flex items-center gap-2">
+        <LanguageMenu />
+
+        <SlideRevealButton href={purchaseUrl} class="hidden lg:inline-flex">
+          {t.ui.browseCheats}
+        </SlideRevealButton>
+      </div>
+      <AnimatedThemeSwitch
+        size="sm"
+        ariaLabel="Toggle light and dark mode"
+        class="hidden sm:inline-flex"
+      />
+
+      <details class="mobile-nav relative lg:hidden">
+        <summary
+          class="mobile-nav__summary inline-flex size-9 list-none items-center justify-center rounded-lg border border-border/80 bg-background/50 text-foreground transition-colors hover:bg-muted"
+          aria-label={t.ui.menuOpen}
+        >
+          <Icon name="menu" size={20} />
+        </summary>
+        <div
+          class="mobile-nav__panel absolute right-0 top-[calc(100%+0.5rem)] z-50 flex w-[min(100vw-2rem,20rem)] flex-col gap-4 rounded-xl border border-border bg-card p-4 shadow-lg"
+        >
+          <p class="font-[family-name:var(--font-heading)] text-base font-semibold text-foreground">{t.site.name}</p>
+
+          <AnimatedThemeSwitch size="sm" ariaLabel="Toggle light and dark mode" />
+          <nav class="flex flex-col gap-1" aria-label="Mobile">
+            {t.nav.map((link) => (
+              <a
+                href={link.href}
+                class="nav-link flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-primary"
+                data-nav-link
+                {...(link.scrollTarget ? { 'data-scroll-target': link.scrollTarget } : {})}
+              >
+                <Icon name={navIcons[link.label] ?? 'navFeatures'} size={16} />
+                {link.label}
+              </a>
+            ))}
+          </nav>
+          <Button as="a" href={purchaseUrl} variant="primary" class="w-fit justify-center" target="_self">
+            {t.ui.browseCheatsMobile}
+          </Button>
+        </div>
+      </details>
+    </div>
+    </div>
+  </div>
+</header>

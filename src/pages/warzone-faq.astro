@@ -1,0 +1,41 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getLocalizedFaqs } from '../data/faq';
+import { DEFAULT_LOCALE, getLocaleFromPathname } from '../i18n';
+import { resolvePageSeo } from '../config/seo';
+import { breadcrumbSchema, faqPageSchema, webPageSchema } from '../utils/schema';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import SiteFaqSection from '../components/SiteFaqSection.astro';
+
+const seo = resolvePageSeo('/warzone-faq/');
+const breadcrumbs = [
+  { name: 'Home', path: '/' },
+  { name: 'FAQ', path: '/warzone-faq/' },
+];
+
+const locale = Astro.locals.locale ?? getLocaleFromPathname(Astro.url.pathname) ?? DEFAULT_LOCALE;
+const faqs = getLocalizedFaqs(locale);
+---
+
+<BaseLayout
+  title={seo.title}
+  description={seo.description}
+  jsonLd={[
+    webPageSchema({
+      name: 'FAQ — Warzone Cheats',
+      description:
+        'Answers about Call of Duty Warzone cheats, ESP, aimbot, Ricochet, checkout, and Windows PC setup at cheats-warzone.com.',
+      url: '/warzone-faq/',
+    }),
+    faqPageSchema(faqs.map((f, i) => ({ num: String(i + 1).padStart(2, '0'), q: f.q, a: f.a.replace(/<[^>]+>/g, '') }))),
+    breadcrumbSchema(breadcrumbs),
+  ]}
+>
+  <SiteFaqSection
+    items={faqs}
+    variant="full"
+    titleId="faq-page-title"
+    headingLevel="h1"
+    breadcrumbs={breadcrumbs}
+  />
+</BaseLayout>

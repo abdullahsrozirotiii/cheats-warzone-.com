@@ -1,0 +1,241 @@
+---
+import "@/styles/starwind.css";
+import {
+  DEFAULT_LOCALE,
+  LOCALE_BY_CODE,
+  getLocaleFromPathname,
+  hreflangAlternates,
+  useTranslations,
+} from '../i18n';
+import {
+  RSS_FEED_PATH,
+  TWITTER_CREATOR,
+  TWITTER_SITE,
+  canonicalUrl,
+  DEFAULT_OG_IMAGE,
+  DEFAULT_OG_IMAGE_HEIGHT,
+  DEFAULT_OG_IMAGE_WIDTH,
+  GA_MEASUREMENT_ID,
+  absoluteAssetUrl,
+  formatMetaDescription,
+  SITE_ORIGIN,
+} from '../config/seo';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import JsonLd from '../components/JsonLd.astro';
+import { organizationSchema } from '../utils/schema';
+
+interface Props {
+  title?: string;
+  description?: string;
+  ogImage?: string;
+  ogImageAlt?: string;
+  ogType?: 'website' | 'article';
+  articlePublishedTime?: string;
+  articleModifiedTime?: string;
+  noindex?: boolean;
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
+}
+
+const locale = Astro.locals.locale ?? getLocaleFromPathname(Astro.url.pathname) ?? DEFAULT_LOCALE;
+const t = useTranslations(locale);
+const localeMeta = LOCALE_BY_CODE[locale];
+
+const {
+  title = t.site.title,
+  description = t.site.description,
+  ogImage = DEFAULT_OG_IMAGE,
+  ogImageAlt = title,
+  ogType = 'website',
+  articlePublishedTime,
+  articleModifiedTime,
+  noindex = false,
+  jsonLd,
+} = Astro.props;
+
+const canonical = canonicalUrl(Astro.url.pathname);
+const ogImageUrl = absoluteAssetUrl(ogImage);
+const metaDesc = formatMetaDescription(description);
+const robotsContent = noindex
+  ? 'noindex, nofollow'
+  : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1';
+
+const incomingJsonLd = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
+const hasOrgOrSite = incomingJsonLd.some((item) => {
+  if (!item || typeof item !== 'object') return false;
+  const type = (item as Record<string, unknown>)['@type'];
+  return (
+    type === 'Organization' ||
+    type === 'WebSite' ||
+    (Array.isArray(type) && (type.includes('Organization') || type.includes('WebSite')))
+  );
+});
+const resolvedJsonLd = hasOrgOrSite
+  ? incomingJsonLd
+  : [organizationSchema(), ...incomingJsonLd];
+---
+
+<!doctype html>
+<html lang={localeMeta.hreflang.split('-')[0]} class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="dns-prefetch" href="https://zadeyo.com" />
+    <link rel="preload" href="/fonts/outfit-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <script is:inline>
+      (function () {
+        try {
+          var stored = localStorage.getItem('colorTheme') || localStorage.getItem('starwind-theme') || localStorage.getItem('theme');
+          if (stored === 'light') document.documentElement.classList.remove('dark');
+          else if (stored === 'dark') document.documentElement.classList.add('dark');
+        } catch (e) {}
+      })();
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={metaDesc} />
+    <meta name="author" content={t.site.name} />
+    <meta name="robots" content={robotsContent} />
+    <meta name="googlebot" content={robotsContent} />
+    <meta name="theme-color" content="#7c3aed" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content={t.site.name} />
+    <meta name="application-name" content={t.site.name} />
+    <link rel="canonical" href={canonical} />
+    {
+      hreflangAlternates(Astro.url.pathname, SITE_ORIGIN).map((alt) => (
+        <link rel="alternate" hreflang={alt.hreflang} href={alt.href} />
+      ))
+    }
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title={`${t.site.name} Blog RSS`}
+      href={RSS_FEED_PATH}
+    />
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="icon" type="image/webp" href="/favicon.webp" />
+    <link rel="apple-touch-icon" href="/favicon-180.webp" />
+
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={metaDesc} />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta property="og:image:secure_url" content={ogImageUrl} />
+    <meta property="og:image:alt" content={ogImageAlt} />
+    <meta property="og:image:width" content={String(DEFAULT_OG_IMAGE_WIDTH)} />
+    <meta property="og:image:height" content={String(DEFAULT_OG_IMAGE_HEIGHT)} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content={t.site.name} />
+    <meta property="og:locale" content={localeMeta.ogLocale} />
+
+    {
+      ogType === 'article' && articlePublishedTime && (
+        <>
+          <meta property="article:published_time" content={articlePublishedTime} />
+          <meta
+            property="article:modified_time"
+            content={articleModifiedTime ?? articlePublishedTime}
+          />
+          <meta property="article:author" content={t.site.name} />
+        </>
+      )
+    }
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={metaDesc} />
+    <meta name="twitter:image" content={ogImageUrl} />
+    <meta name="twitter:image:alt" content={ogImageAlt} />
+    <meta name="twitter:url" content={canonical} />
+    <meta name="twitter:site" content={TWITTER_SITE || '@warzonecheats'} />
+    <meta name="twitter:creator" content={TWITTER_CREATOR || '@warzonecheats'} />
+
+    <JsonLd data={resolvedJsonLd} />
+    <slot name="head" />
+
+    <style is:inline>
+      /* Responsive viewport rules and media queries for mobile and tablet adaptation */
+      @media (max-width: 640px) {
+        html { -webkit-text-size-adjust: 100%; }
+        .container, .max-w-6xl { padding-left: 1rem; padding-right: 1rem; }
+        h1 { word-break: break-word; }
+      }
+      @media (max-width: 768px) {
+        table { display: block; overflow-x: auto; width: 100%; -webkit-overflow-scrolling: touch; }
+        img, video { max-width: 100%; height: auto; }
+      }
+      @media (min-width: 769px) and (max-width: 1024px) {
+        .tablet-adjust { max-width: 100%; }
+      }
+      @media (min-width: 1025px) {
+        .desktop-only { display: block; }
+      }
+    </style>
+  </head>
+  <body class="min-h-screen bg-background text-foreground">
+    <button type="button" class="skip-link" data-skip-to-main>{t.ui.skipLink}</button>
+    <Header />
+    <main id="main-content">
+      <slot />
+    </main>
+    <Footer />
+    {
+      locale === 'es' ? (
+        <nav class="sr-only" data-no-localize="true">
+          <p>Spanish blog archive</p>
+          <a href="/es/warzone-blog/aimbot-fov/">Aimbot FOV</a>
+          <a href="/es/warzone-blog/esp-colors/">Colores ESP</a>
+          <a href="/es/warzone-blog/recoil-aimbot/">Retroceso y aimbot</a>
+          <a href="/es/warzone-blog/silent-aim/">Silent aim</a>
+          <a href="/es/warzone-blog/triggerbot-aimbot/">Triggerbot vs aimbot</a>
+          <a href="/es/warzone-blog/undetected-cheats/">Trucos no detectados</a>
+        </nav>
+      ) : null
+    }
+
+    <script>
+      import '../scripts/site.ts';
+    </script>
+    <script is:inline>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').catch(() => {});
+        });
+      }
+    </script>
+    {
+      GA_MEASUREMENT_ID && (
+        <script is:inline define:vars={{ GA_MEASUREMENT_ID }}>
+          (() => {
+            const loadGa = () => {
+              if (window.__gaLoaded) return;
+              window.__gaLoaded = true;
+              window.dataLayer = window.dataLayer || [];
+              function gtag() {
+                dataLayer.push(arguments);
+              }
+              gtag('js', new Date());
+              gtag('config', GA_MEASUREMENT_ID, { anonymize_ip: true });
+              const s = document.createElement('script');
+              s.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_MEASUREMENT_ID;
+              s.async = true;
+              document.head.appendChild(s);
+            };
+            const onReady = () => {
+              if (typeof window.requestIdleCallback === 'function') {
+                window.requestIdleCallback(loadGa, { timeout: 4000 });
+              } else {
+                window.setTimeout(loadGa, 2500);
+              }
+            };
+            if (document.readyState === 'complete') onReady();
+            else window.addEventListener('load', onReady, { once: true });
+          })();
+        </script>
+      )
+    }
+  </body>
+</html>

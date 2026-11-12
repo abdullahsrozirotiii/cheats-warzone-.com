@@ -1,0 +1,29 @@
+---
+import type { ProductPage } from '../../data/products';
+import Icon from '../icons/Icon.astro';
+import { Badge } from '@/components/starwind/badge';
+import { DEFAULT_LOCALE, getLocaleFromPathname, useTranslations } from '../../i18n';
+
+interface Props {
+  product: ProductPage;
+}
+
+const { product } = Astro.props;
+const locale = Astro.locals.locale ?? getLocaleFromPathname(Astro.url.pathname) ?? DEFAULT_LOCALE;
+const t = useTranslations(locale);
+---
+
+<header class="product-detail-header space-y-4">
+  <div class="flex flex-wrap items-center gap-2">
+    <Badge variant="secondary">{product.badge}</Badge>
+    {product.variant === 'popular' && <Badge>{t.ui.popular}</Badge>}
+    {product.variant === 'limited' && <Badge variant="warning">{t.ui.limited}</Badge>}
+    <Badge variant="outline">{t.ui.warzoneGame}</Badge>
+    <Badge variant="outline" class="gap-1.5">
+      <Icon name="shieldCheck" size={13} class="icon-app--primary" />
+      {t.ui.windowsPc}
+    </Badge>
+  </div>
+  <h1 class="max-w-3xl text-3xl font-bold normal-case leading-tight md:text-4xl">{product.title}</h1>
+  <p class="max-w-2xl text-lg leading-relaxed text-muted-foreground">{product.subtitle || product.desc}</p>
+</header>

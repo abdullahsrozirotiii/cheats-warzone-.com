@@ -1,0 +1,56 @@
+=== index.html ===
+Warzone Cheats | Call of Duty Warzone PC
+Warzone Cheats for Windows PC. ESP, wallhack, radar, and aim helpers, with product notes to read before you buy.
+https://cheatswarzone.com/
+index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1
+1
+1
+=== products/warzone-cheats/index.html ===
+CALL OF DUTY WARZONE | ESP, Aimbot & Recoil
+Player ESP, aimbot, and separate recoil layers. Monthly is 31 days for $35. Lifetime is unlimited access for $150.
+https://cheatswarzone.com/products/warzone-cheats/
+index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1
+1
+1
+=== products/warzone-cheats/elite/index.html ===
+CALL OF DUTY WARZONE | Player ESP & Aimbot
+Player ESP, aimbot, loot ESP, and config save/load. Monthly $35 for 31 days, or lifetime access for $150.
+https://cheatswarzone.com/products/warzone-cheats/elite/
+index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1
+1
+1
+=== blog/index.html ===
+Warzone Cheats Guides & Patch Notes
+Long-form articles on features, terminology, and fair play for Call of Duty Warzone on Windows PC.
+https://cheatswarzone.com/blog/
+index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1
+1
+1
+=== blog/warzone-cheats-features/index.html ===
+Complete Warzone PC Modules & Features Breakdown
+A plain walkthrough of the module categories on the listing, and why build-specific details belong on the product page.
+https://cheatswarzone.com/blog/warzone-cheats-features/
+index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1
+1
+1
+=== faq/index.html ===
+Warzone FAQ
+What this independent publication covers, how we source facts, and how fair-play topics are handled.
+https://cheatswarzone.com/faq/
+index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1
+1
+1
+=== support/index.html ===
+Support | WarzoneCheats
+Questions about articles or this site. Checkout and payment issues are handled on the external checkout side.
+https://cheatswarzone.com/support/
+index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1
+1
+1
+=== 404.html ===
+Page not found | WarzoneCheats
+The page you requested could not be found on cheatswarzone.com.
+https://cheatswarzone.com/404/
+noindex, nofollow
+0
+1
